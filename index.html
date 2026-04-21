@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Startseite</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="./Style/style.css" />
+</head>
+<body>
+
+  <!-- =============================================
+       HEADER: Uhrzeit + Begrüßung
+       ============================================= -->
+  <header class="header">
+    <div class="clock" id="clock">00:00</div>
+    <div class="greeting" id="greeting">Guten Morgen</div>
+  </header>
+
+  <!-- =============================================
+       SUCHLEISTE
+       ============================================= -->
+  <div class="search-wrapper">
+    <div class="search-bar">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Suchen oder URL eingeben..."
+        autocomplete="off"
+      />
+    </div>
+  </div>
+
+  <!-- =============================================
+       APP-KACHELN GRID
+       ============================================= -->
+  <main class="grid-wrapper">
+    <div class="section-label">Meine Apps</div>
+    <div class="app-grid" id="appGrid">
+      <!-- Kacheln werden per JavaScript eingefügt -->
+    </div>
+  </main>
+
+  <!-- =============================================
+       „+" BUTTON (unten rechts, immer sichtbar)
+       ============================================= -->
+  <button class="add-btn" id="addBtn" title="App hinzufügen">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5"  y1="12" x2="19" y2="12"/>
+    </svg>
+  </button>
+
+  <!-- =============================================
+       MODAL: Neue App hinzufügen
+       ============================================= -->
+
+  <!-- Dunkler Hintergrund hinter dem Modal -->
+  <div class="modal-overlay" id="modalOverlay"></div>
+
+  <!-- Modal-Fenster -->
+  <div class="modal" id="addModal">
+
+    <!-- Kopfzeile -->
+    <div class="modal-header">
+      <span class="modal-title">App hinzufügen</span>
+      <button class="modal-close" id="modalClose" title="Schließen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6"  y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Formular -->
+    <form id="addForm">
+
+      <!-- Name & URL -->
+      <div class="form-group">
+        <label for="inputName">Name</label>
+        <input type="text" id="inputName" placeholder="z.B. GitHub" required />
+      </div>
+
+      <div class="form-group">
+        <label for="inputUrl">URL</label>
+        <input type="text" id="inputUrl" placeholder="z.B. github.com" required />
+      </div>
+
+      <div class="form-group">
+        <label for="inputSub">Beschreibung <span class="optional">(optional)</span></label>
+        <input type="text" id="inputSub" placeholder="z.B. Code" />
+      </div>
+
+      <!-- ── ICON-SCHALTER: Emoji ↔ Bild ── -->
+      <div class="form-group">
+        <label>Icon-Typ</label>
+        <div class="icon-toggle">
+          <!-- Emoji-Button (standard aktiv) -->
+          <button type="button" id="toggleEmoji" class="toggle-btn active">
+            😀 Emoji
+          </button>
+          <!-- Bild-Button -->
+          <button type="button" id="toggleImage" class="toggle-btn">
+            🖼️ Bild
+          </button>
+        </div>
+      </div>
+
+      <!-- Emoji-Eingabe (sichtbar wenn Emoji-Modus aktiv) -->
+      <div id="emojiArea" class="form-group">
+        <label for="inputEmoji">Emoji eingeben</label>
+        <input type="text" id="inputEmoji" placeholder="z.B. 🚀" maxlength="4" />
+      </div>
+
+      <!-- Bild-Upload (sichtbar wenn Bild-Modus aktiv) -->
+      <div id="imageArea" class="form-group" style="display:none">
+        <label>Bild hochladen</label>
+
+        <!-- Drop-Zone -->
+        <div class="drop-zone" id="dropZone">
+          <!-- Vorschau-Bild (versteckt bis Bild geladen) -->
+          <img id="imagePreview" src="" alt="Vorschau" style="display:none" />
+
+          <!-- Hinweistext (verschwindet wenn Bild geladen) -->
+          <div class="drop-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <span>Bild hierher ziehen<br/>oder klicken zum Auswählen</span>
+          </div>
+
+          <!-- Versteckter Datei-Input -->
+          <input type="file" id="fileInput" accept="image/*" style="display:none" />
+        </div>
+      </div>
+
+      <!-- Absenden-Button -->
+      <button type="submit" class="submit-btn">Kachel hinzufügen</button>
+
+    </form>
+  </div>
+
+  <!-- Scripts: apps.js zuerst, dann main.js -->
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAVjuGZg8T8eMUHRVFS1K3Qk6cZXI2CSiM",
+    authDomain: "homewebsite-f5702.firebaseapp.com",
+    projectId: "homewebsite-f5702",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.db = db;
+</script>
+
+  <script src="./JS/apps.js"></script>
+  <script type="module" src="./JS/main.js"></script>
+  
+
+</body>
+</html>
