@@ -379,3 +379,42 @@ body:has(#addModal.open) .modal-overlay { display: block; }
 ::-webkit-scrollbar-track { background: var(--bg-main); }
 ::-webkit-scrollbar-thumb { background: #2a2a35; border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ── DELETE BUTTON ── */
+.delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(20, 20, 25, 0.9);
+  color: var(--text-secondary);
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s, color 0.2s;
+}
+
+.delete-btn svg {
+  width: 11px;
+  height: 11px;
+}
+
+/* X nur sichtbar wenn man über die Kachel hovert */
+div:has(> .app-card):hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  background: #e53e3e;
+  color: #fff;
+  border-color: transparent;
+}
