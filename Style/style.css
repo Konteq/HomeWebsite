@@ -206,12 +206,28 @@ body {
 .card-wrapper.drag-over .app-card { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
 
 .app-icon {
-  width: 52px; height: 52px; border-radius: 12px;
+  width: 52px; height: 52px;
+  border-radius: 12px;
   background: rgba(255,255,255,0.04);
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px; overflow: hidden; position: relative;
+  font-size: 26px;
+  overflow: hidden; position: relative;
+  transition: width 0.2s, height 0.2s, font-size 0.2s;
 }
-.app-icon img { width: 32px; height: 32px; object-fit: contain; }
+
+.app-icon img { width: 32px; height: 32px; object-fit: contain; transition: width 0.2s, height 0.2s; }
+
+/* Kachelgröße Klein */
+[data-size="small"] .app-icon              { width: 36px; height: 36px; font-size: 18px; }
+[data-size="small"] .app-icon img          { width: 22px; height: 22px; }
+
+/* Kachelgröße Mittel (Standard) */
+[data-size="medium"] .app-icon             { width: 52px; height: 52px; font-size: 26px; }
+[data-size="medium"] .app-icon img         { width: 32px; height: 32px; }
+
+/* Kachelgröße Groß */
+[data-size="large"] .app-icon              { width: 72px; height: 72px; font-size: 38px; border-radius: 18px; }
+[data-size="large"] .app-icon img          { width: 48px; height: 48px; }
 
 .click-badge {
   position: absolute; bottom: -4px; right: -4px;
