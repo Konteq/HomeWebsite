@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import {
-  getFirestore, collection, getDocs, addDoc
+  getFirestore, collection, getDocs, addDoc, deleteDoc, doc
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import {
   getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged
@@ -18,7 +18,7 @@ const auth        = getAuth(firebaseApp);
 const provider    = new GoogleAuthProvider();
 
 window.APPS = [];
-let currentUserId = null; // ← merkt sich die User-ID
+let currentUserId = null;
 
 /* ── UHR ── */
 function updateClocks() {
@@ -64,6 +64,18 @@ function createIconElement(app) {
   return wrap;
 }
 
+/* ── APP LÖSCHEN ── */
+async function deleteApp(docId, index) {
+  if (!currentUserId) return;
+  try {
+    await deleteDoc(doc(db, "users", currentUserId, "apps", docId));
+    APPS.splice(index, 1);
+    buildGrid();
+  } catch (err) {
+    console.error("Löschen fehlgeschlagen:", err);
+  }
+}
+
 /* ── GRID ── */
 function buildGrid() {
   const grid = document.getElementById('appGrid');
@@ -74,34 +86,56 @@ function buildGrid() {
     return;
   }
   APPS.forEach((app, index) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'card-wrapper';
+
     const card = document.createElement('a');
     card.href = app.url;
     card.target = '_blank';
     card.className = 'app-card';
     card.style.animationDelay = `${index * 40}ms`;
     card.appendChild(createIconElement(app));
+
     const name = document.createElement('div');
     name.className = 'app-name';
     name.textContent = app.name;
     card.appendChild(name);
+
     if (app.sub) {
       const sub = document.createElement('div');
       sub.className = 'app-sub';
       sub.textContent = app.sub;
       card.appendChild(sub);
     }
-    grid.appendChild(card);
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.title = 'App entfernen';
+    deleteBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    `;
+    deleteBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      deleteApp(app.docId, index);
+    });
+
+    wrapper.appendChild(card);
+    wrapper.appendChild(deleteBtn);
+    grid.appendChild(wrapper);
   });
 }
 
-/* ── FIREBASE: Apps des eingeloggten Users laden ── */
+/* ── FIREBASE LADEN ── */
 async function loadAppsFromFirebase() {
   if (!currentUserId) return;
   try {
-    // Pfad: users/{userId}/apps  → nur die Apps dieses Users
     const snapshot = await getDocs(collection(db, "users", currentUserId, "apps"));
     window.APPS = [];
-    snapshot.forEach(doc => APPS.push(doc.data()));
+    snapshot.forEach(d => APPS.push({ ...d.data(), docId: d.id }));
     buildGrid();
   } catch (err) {
     console.error("Firebase Ladefehler:", err);
@@ -116,7 +150,7 @@ onAuthStateChanged(auth, async (user) => {
   const userAvatar  = document.getElementById('userAvatar');
 
   if (user) {
-    currentUserId = user.uid; // ← User-ID speichern
+    currentUserId = user.uid;
     loginScreen.style.display = 'none';
     app.style.display = 'flex';
     if (user.photoURL) {
@@ -210,9 +244,8 @@ document.getElementById('addForm').addEventListener('submit', async function (e)
   };
 
   try {
-    // Speichern unter users/{userId}/apps
-    await addDoc(collection(db, "users", currentUserId, "apps"), newApp);
-    APPS.push(newApp);
+    const docRef = await addDoc(collection(db, "users", currentUserId, "apps"), newApp);
+    APPS.push({ ...newApp, docId: docRef.id });
     buildGrid();
     this.reset();
     currentIconMode = 'emoji';

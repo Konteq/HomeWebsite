@@ -181,6 +181,11 @@ body {
   gap: var(--gap);
 }
 
+/* ── CARD WRAPPER ── */
+.card-wrapper {
+  position: relative;
+}
+
 .app-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -193,6 +198,7 @@ body {
   align-items: center;
   gap: 12px;
   text-align: center;
+  width: 100%;
   animation: fadeUp 0.5s ease both;
   transition: background 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
@@ -216,6 +222,36 @@ body {
 .app-icon img { width: 32px; height: 32px; object-fit: contain; }
 .app-name { font-size: 13px; font-weight: 400; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .app-sub { font-size: 11px; color: var(--text-secondary); margin-top: -6px; }
+
+/* ── DELETE BUTTON ── */
+.delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(20, 20, 25, 0.9);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s, color 0.2s;
+}
+
+.delete-btn svg { width: 11px; height: 11px; }
+
+.card-wrapper:hover .delete-btn { opacity: 1; }
+
+.delete-btn:hover {
+  background: #e53e3e;
+  color: #fff;
+  border-color: transparent;
+}
 
 /* ── + BUTTON ── */
 .add-btn {
@@ -286,9 +322,7 @@ body:has(#addModal.open) .modal-overlay { display: block; }
 .modal-close svg { width: 18px; height: 18px; }
 
 .form-group { display: flex; flex-direction: column; gap: 8px; }
-
 .form-group label { font-size: 12px; font-weight: 400; color: var(--text-secondary); letter-spacing: 0.04em; }
-
 .optional { opacity: 0.5; font-size: 11px; }
 
 .form-group input[type="text"] {
@@ -379,42 +413,3 @@ body:has(#addModal.open) .modal-overlay { display: block; }
 ::-webkit-scrollbar-track { background: var(--bg-main); }
 ::-webkit-scrollbar-thumb { background: #2a2a35; border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-
-/* ── DELETE BUTTON ── */
-.delete-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 10;
-
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(20, 20, 25, 0.9);
-  color: var(--text-secondary);
-  cursor: pointer;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  opacity: 0;
-  transition: opacity 0.2s, background 0.2s, color 0.2s;
-}
-
-.delete-btn svg {
-  width: 11px;
-  height: 11px;
-}
-
-/* X nur sichtbar wenn man über die Kachel hovert */
-div:has(> .app-card):hover .delete-btn {
-  opacity: 1;
-}
-
-.delete-btn:hover {
-  background: #e53e3e;
-  color: #fff;
-  border-color: transparent;
-}
