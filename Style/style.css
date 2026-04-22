@@ -106,46 +106,87 @@ body {
 
 /* ── WIDGETS ── */
 .widgets-row {
-  display: flex; gap: 16px; width: 100%; max-width: 860px;
+  width: 100%;
+  max-width: 860px;
   animation: fadeDown 0.7s 0.05s ease both;
 }
 
 .widget {
-  background: var(--bg-widget); border: 1px solid var(--border);
-  border-radius: 16px; padding: 16px 20px; transition: background 0.3s;
+  background: var(--bg-widget);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 28px;
+  transition: background 0.3s;
 }
 
-.weather-widget { min-width: 180px; display: flex; align-items: center; justify-content: center; }
-.weather-content { display: flex; align-items: center; gap: 14px; }
-.weather-main { display: flex; align-items: center; gap: 6px; }
-.weather-icon { font-size: 28px; }
-.weather-temp { font-family: var(--font-mono); font-size: 26px; color: var(--text-primary); }
-.weather-info { display: flex; flex-direction: column; gap: 2px; }
-.weather-city { font-size: 13px; font-weight: 600; color: var(--text-primary); }
-.weather-desc { font-size: 11px; color: var(--text-secondary); text-transform: capitalize; }
-.weather-error { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
-
-.spinner {
-  width: 20px; height: 20px; border: 2px solid var(--border);
-  border-top-color: var(--accent); border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.note-widget { flex: 1; display: flex; flex-direction: column; gap: 8px; min-height: 80px; }
-
-.note-header {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 11px; font-family: var(--font-mono); letter-spacing: 0.08em;
-  text-transform: uppercase; color: var(--text-label);
+.quote-widget {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 80px;
+  justify-content: center;
 }
 
-#notepad {
-  flex: 1; background: none; border: none; outline: none; resize: none;
-  font-family: var(--font-display); font-size: 13px; font-weight: 300;
-  color: var(--text-primary); line-height: 1.6; min-height: 48px;
+.quote-mark {
+  font-family: Georgia, serif;
+  font-size: 64px;
+  line-height: 0.6;
+  color: var(--accent);
+  opacity: 0.4;
+  user-select: none;
+  margin-bottom: 4px;
 }
-#notepad::placeholder { color: var(--text-label); }
+
+.quote-text {
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--text-primary);
+  line-height: 1.7;
+  font-style: italic;
+  max-width: 700px;
+  transition: opacity 0.4s;
+}
+
+.quote-text.fade { opacity: 0; }
+
+.quote-author {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  text-transform: uppercase;
+  transition: opacity 0.4s;
+}
+
+.quote-author.fade { opacity: 0; }
+
+.quote-refresh {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, border-color 0.2s, transform 0.4s;
+}
+
+.quote-refresh svg { width: 14px; height: 14px; }
+
+.quote-refresh:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.quote-refresh.spinning {
+  transform: rotate(360deg);
+}
 
 /* ── SUCHE ── */
 .search-wrapper { width: 100%; max-width: 560px; animation: fadeDown 0.7s 0.1s ease both; }

@@ -263,39 +263,97 @@ function setGreeting() {
   else                          el.textContent = 'Gute Nacht 🌙';
 }
 
-/* ── WETTER ── */
-const WEATHER_ICONS = { Clear:'☀️', Clouds:'☁️', Rain:'🌧️', Drizzle:'🌦️', Thunderstorm:'⛈️', Snow:'❄️', Mist:'🌫️', Fog:'🌫️', Haze:'🌫️' };
+/* ── ZITAT ── */
+const QUOTES = [
+  { text: "Der einzige Weg, großartige Arbeit zu leisten, ist zu lieben, was man tut.", author: "Steve Jobs" },
+  { text: "Nicht weil es schwer ist, wagen wir es nicht, sondern weil wir es nicht wagen, ist es schwer.", author: "Seneca" },
+  { text: "In der Mitte jeder Schwierigkeit liegt eine Möglichkeit.", author: "Albert Einstein" },
+  { text: "Das Geheimnis des Vorwärtskommens ist, anzufangen.", author: "Mark Twain" },
+  { text: "Disziplin ist die Brücke zwischen Zielen und Erfolgen.", author: "Jim Rohn" },
+  { text: "Du musst die Veränderung sein, die du in der Welt sehen möchtest.", author: "Mahatma Gandhi" },
+  { text: "Erfolg ist die Summe kleiner Anstrengungen, die Tag für Tag wiederholt werden.", author: "Robert Collier" },
+  { text: "Wer aufhört, besser zu werden, hat aufgehört, gut zu sein.", author: "Philip Rosenthal" },
+  { text: "Das Leben ist das, was passiert, während du andere Pläne machst.", author: "John Lennon" },
+  { text: "Träume nicht dein Leben, lebe deinen Traum.", author: "Mark Twain" },
+  { text: "Der beste Zeitpunkt, einen Baum zu pflanzen, war vor 20 Jahren. Der zweitbeste ist jetzt.", author: "Chinesisches Sprichwort" },
+  { text: "Wenn du weißt, warum du aufstehst, ist es egal, wie.", author: "Friedrich Nietzsche" },
+  { text: "Es ist nicht genug zu wissen, man muss auch anwenden. Es ist nicht genug zu wollen, man muss auch tun.", author: "Johann Wolfgang von Goethe" },
+  { text: "Perfektion ist nicht dann erreicht, wenn es nichts mehr hinzuzufügen gibt, sondern wenn man nichts mehr weglassen kann.", author: "Antoine de Saint-Exupéry" },
+  { text: "Wer kämpft, kann verlieren. Wer nicht kämpft, hat schon verloren.", author: "Bertolt Brecht" },
+  { text: "Die Zukunft gehört denen, die an die Schönheit ihrer Träume glauben.", author: "Eleanor Roosevelt" },
+  { text: "Tue jeden Tag etwas, wovor du Angst hast.", author: "Eleanor Roosevelt" },
+  { text: "Erfolg ist kein Schlüssel zum Glück. Glück ist der Schlüssel zum Erfolg.", author: "Albert Schweitzer" },
+  { text: "Dein einziger Konkurrent sollte dein gestrigeres Ich sein.", author: "Unbekannt" },
+  { text: "Fang an, wo du bist. Nutze, was du hast. Tue, was du kannst.", author: "Arthur Ashe" },
+  { text: "Kleine tägliche Verbesserungen führen zu atemberaubenden Ergebnissen über die Zeit.", author: "Robin Sharma" },
+  { text: "Der Unterschied zwischen ordinary und extraordinary ist das kleine Extra.", author: "Jimmy Johnson" },
+  { text: "Stärke wächst nicht aus körperlicher Kraft. Sie kommt aus unbezwingbarem Willen.", author: "Mahatma Gandhi" },
+  { text: "Jeder Experte war einmal ein Anfänger.", author: "Helen Hayes" },
+  { text: "Konzentriere dich auf das Wesentliche, lass den Rest los.", author: "Mark Twain" },
+];
 
-async function loadWeather() {
-  const s = loadSettings();
-  if (!s.weatherApiKey) {
-    document.getElementById('weatherLoading').style.display = 'none';
-    document.getElementById('weatherError').style.display = 'flex';
-    return;
+let currentQuoteIndex = -1;
+
+function getQuoteForToday() {
+  const day = new Date().toDateString();
+  const stored = localStorage.getItem('quote_day');
+  const storedIdx = parseInt(localStorage.getItem('quote_idx'));
+
+  if (stored === day && !isNaN(storedIdx)) {
+    return storedIdx;
   }
-  try {
-    const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000 }));
-    const { latitude: lat, longitude: lon } = pos.coords;
-    const data = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${s.weatherApiKey}&units=metric&lang=de`).then(r => r.json());
-    if (data.cod !== 200) throw new Error();
-    document.getElementById('weatherTemp').textContent = `${Math.round(data.main.temp)}°`;
-    document.getElementById('weatherDesc').textContent = data.weather[0].description;
-    document.getElementById('weatherCity').textContent = data.name;
-    document.getElementById('weatherIcon').textContent = WEATHER_ICONS[data.weather[0].main] || '🌡️';
-    document.getElementById('weatherLoading').style.display = 'none';
-    document.getElementById('weatherContent').style.display = 'flex';
-  } catch {
-    document.getElementById('weatherLoading').style.display = 'none';
-    document.getElementById('weatherError').style.display = 'flex';
-  }
+
+  let idx;
+  do { idx = Math.floor(Math.random() * QUOTES.length); }
+  while (idx === storedIdx);
+
+  localStorage.setItem('quote_day', day);
+  localStorage.setItem('quote_idx', idx);
+  return idx;
 }
 
-/* ── NOTIZ ── */
-const NOTE_KEY = 'startseite_note';
-const notepad = document.getElementById('notepad');
-if (notepad) {
-  notepad.value = localStorage.getItem(NOTE_KEY) || '';
-  notepad.addEventListener('input', () => localStorage.setItem(NOTE_KEY, notepad.value));
+function showQuote(index, animate = false) {
+  const textEl   = document.getElementById('quoteText');
+  const authorEl = document.getElementById('quoteAuthor');
+  if (!textEl || !authorEl) return;
+
+  const quote = QUOTES[index];
+
+  if (animate) {
+    textEl.classList.add('fade');
+    authorEl.classList.add('fade');
+    setTimeout(() => {
+      textEl.textContent   = quote.text;
+      authorEl.textContent = '— ' + quote.author;
+      textEl.classList.remove('fade');
+      authorEl.classList.remove('fade');
+    }, 400);
+  } else {
+    textEl.textContent   = quote.text;
+    authorEl.textContent = '— ' + quote.author;
+  }
+
+  currentQuoteIndex = index;
+}
+
+function initQuote() {
+  const idx = getQuoteForToday();
+  showQuote(idx);
+
+  const refreshBtn = document.getElementById('quoteRefresh');
+  if (!refreshBtn) return;
+
+  refreshBtn.addEventListener('click', () => {
+    let newIdx;
+    do { newIdx = Math.floor(Math.random() * QUOTES.length); }
+    while (newIdx === currentQuoteIndex);
+
+    refreshBtn.classList.add('spinning');
+    setTimeout(() => refreshBtn.classList.remove('spinning'), 400);
+
+    showQuote(newIdx, true);
+    localStorage.setItem('quote_idx', newIdx);
+  });
 }
 
 /* ── ICON ── */
