@@ -21,10 +21,9 @@ window.APPS = [];
 let currentUserId = null;
 
 /* ════════════════════════════════════
-   AUTO-EMOJI DATENBANK
+   AUTO-EMOJI
 ════════════════════════════════════ */
 const AUTO_EMOJI_MAP = [
-  // Kommunikation
   { keys: ['gmail','mail','email','post'],         emoji: '📧' },
   { keys: ['whatsapp','telegram','signal'],         emoji: '💬' },
   { keys: ['discord'],                              emoji: '🎮' },
@@ -37,7 +36,6 @@ const AUTO_EMOJI_MAP = [
   { keys: ['tiktok'],                               emoji: '🎵' },
   { keys: ['reddit'],                               emoji: '🦊' },
   { keys: ['pinterest'],                            emoji: '📌' },
-  // Entwicklung
   { keys: ['github','gitlab','bitbucket'],          emoji: '🐙' },
   { keys: ['stackoverflow','stack'],                emoji: '📚' },
   { keys: ['vercel','netlify','hosting'],           emoji: '🚀' },
@@ -45,12 +43,10 @@ const AUTO_EMOJI_MAP = [
   { keys: ['figma','design','sketch'],              emoji: '🎨' },
   { keys: ['vscode','code','editor'],               emoji: '💻' },
   { keys: ['terminal','console','shell'],           emoji: '⌨️' },
-  // KI
   { keys: ['chatgpt','openai'],                     emoji: '🤖' },
   { keys: ['claude','anthropic'],                   emoji: '🧠' },
   { keys: ['midjourney','dalle','stable'],          emoji: '🖼️' },
   { keys: ['copilot'],                              emoji: '✈️' },
-  // Produktivität
   { keys: ['notion'],                               emoji: '📓' },
   { keys: ['obsidian','notes','notizen'],           emoji: '📝' },
   { keys: ['trello','jira','asana','linear'],       emoji: '📋' },
@@ -58,40 +54,28 @@ const AUTO_EMOJI_MAP = [
   { keys: ['todoist','todo','tasks','aufgaben'],    emoji: '✅' },
   { keys: ['airtable'],                             emoji: '🗂️' },
   { keys: ['confluence','wiki','docs'],             emoji: '📖' },
-  // Google
   { keys: ['google.com'],                           emoji: '🔍' },
   { keys: ['drive','cloud','speicher'],             emoji: '☁️' },
   { keys: ['sheets','excel','tabelle'],             emoji: '📊' },
-  { keys: ['docs','word','dokument'],               emoji: '📄' },
   { keys: ['slides','powerpoint','präsentation'],   emoji: '🖥️' },
   { keys: ['maps','karte','navigation'],            emoji: '🗺️' },
   { keys: ['translate','übersetzer'],               emoji: '🌍' },
-  { keys: ['photos','bilder','gallery'],            emoji: '🖼️' },
-  // Medien
   { keys: ['youtube'],                              emoji: '▶️' },
   { keys: ['spotify','musik','music'],              emoji: '🎵' },
   { keys: ['netflix'],                              emoji: '🎬' },
   { keys: ['twitch'],                               emoji: '🎮' },
   { keys: ['soundcloud'],                           emoji: '🎶' },
   { keys: ['podcast'],                              emoji: '🎙️' },
-  { keys: ['deezer','apple music'],                 emoji: '🎧' },
-  { keys: ['vimeo'],                                emoji: '📽️' },
-  // Shopping
   { keys: ['amazon'],                               emoji: '📦' },
-  { keys: ['ebay'],                                 emoji: '🏷️' },
   { keys: ['paypal','payment','zahlung'],           emoji: '💳' },
   { keys: ['bank','banking','konto'],               emoji: '🏦' },
   { keys: ['crypto','bitcoin','ethereum'],          emoji: '₿' },
-  // Sonstiges
   { keys: ['protonmail','proton'],                  emoji: '🔒' },
   { keys: ['bitwarden','lastpass','1password'],     emoji: '🔑' },
-  { keys: ['weather','wetter'],                     emoji: '⛅' },
   { keys: ['news','zeitung','heise','spiegel'],     emoji: '📰' },
   { keys: ['wikipedia'],                            emoji: '📚' },
-  { keys: ['recipe','rezept','kochen'],             emoji: '🍳' },
   { keys: ['fitness','gym','sport'],                emoji: '💪' },
-  { keys: ['travel','reise','flug'],                emoji: '✈️' },
-  { keys: ['game','spiel','steam'],                 emoji: '🎮' },
+  { keys: ['steam','game','spiel'],                 emoji: '🎮' },
 ];
 
 function getAutoEmoji(name, url) {
@@ -106,17 +90,16 @@ function getAutoEmoji(name, url) {
    EMOJI PICKER DATEN
 ════════════════════════════════════ */
 const EMOJI_DATA = {
-  smileys: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','😙','😚','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿'],
-  tech: ['💻','🖥️','🖨️','⌨️','🖱️','🖲️','💾','💿','📀','📱','☎️','📞','📟','📠','📺','📷','📸','📹','🎥','📽️','🎞️','📡','🔋','🔌','💡','🔦','🕯️','🧯','🛢️','💰','💴','💵','💶','💷','💸','💳','🧾','⚙️','🔧','🔨','⚒️','🛠️','⛏️','🔩','🗜️','⚖️','🔗','⛓️','🧲','🔫','💣','🔪','🗡️','⚔️','🛡️','🚬','🔭','🔬','🩺','💊','🩹','🩼','🩻','🧬','🦠','🧫','🧪','🌡️','🧹','🧺','🧻','🚪','🛋️','🪑','🚽','🚿','🛁','🧴','🧷','🧸','🖼️','🛍️','🎁','🎀'],
-  objects: ['📦','📫','📪','📬','📭','📮','🗳️','✏️','✒️','🖋️','🖊️','📝','📁','📂','🗂️','📅','📆','🗒️','🗓️','📇','📈','📉','📊','📋','📌','📍','✂️','🗃️','🗄️','🗑️','🔒','🔓','🔏','🔐','🔑','🗝️','🔨','🪓','⛏️','🔧','🪛','🔩','⚙️','🗜️','⚖️','🦯','🔗','⛓️','🪝','🧲','🪜','🧪','🧫','🧬','🔭','🔬','🩺','💈','⚗️','🔮','🪄','🧿','🪬','🧸','🪅','🎭','🎨','🖼️','🎰','🎲','🧩','♟️','🎯','🎳','🏹','🎣','🤿','🥊','🥋','🎽','⛸️','🛷','🛹','🛼'],
-  symbols: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','☸️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','🔕','🔇','🔈','🔉','🔊','📢','📣','📯','🔔','🔕','🎵','🎶','⚠️','🚸','♻️','✅','❎','🔱','⚜️','🔰','♾️','⭕','✔️','❎','➕','➖','➗','✖️','❓','❔','❕','❗','〰️','💱','💲','⚕️','♀️','♂️','⚧️','✳️','❇️','🔀','🔁','🔂','▶️','⏩','⏭️','⏯️','◀️','⏪','⏮️','🔼','⏫','🔽','⏬','⏸️','⏹️','⏺️','⏏️','🎦','🔅','🔆','📶','📳','📴','📵','📲','☎️','🔋','🪫','🔌']
+  smileys: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😋','😛','😜','🤪','😝','🤑','🤗','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','😌','😔','😪','😴','😷','🤒','🤕','🤢','🤧','🥵','🥶','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','😤','😡','😠','🤬','😈','👿'],
+  tech: ['💻','🖥️','🖨️','⌨️','🖱️','💾','💿','📀','📱','☎️','📞','📟','📠','📺','📷','📸','📹','🎥','📡','🔋','🔌','💡','🔦','⚙️','🔧','🔨','🔩','🗜️','🔗','⛓️','🧲','🔭','🔬','🩺','💊','🧬','🧪','🌡️','🖼️','🛍️','🎁'],
+  objects: ['📦','📫','📬','📭','📮','🗳️','✏️','✒️','🖋️','📝','📁','📂','🗂️','📅','📆','🗒️','🗓️','📇','📈','📉','📊','📋','📌','📍','✂️','🗃️','🗄️','🗑️','🔒','🔓','🔑','🗝️','🪄','🧿','🎭','🎨','🎰','🎲','🧩','♟️','🎯','🎳','🏹','🎣','🥊','🥋','🎽','🛷','🛹'],
+  symbols: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','☮️','✝️','☪️','🕉️','☸️','✡️','🔯','☯️','🆔','⚛️','☢️','☣️','📴','📳','✴️','🆚','💯','💢','♨️','🚫','🔞','⚠️','🚸','♻️','✅','❎','➕','➖','➗','✖️','❓','❗','💱','💲','▶️','⏩','⏭️','◀️','⏪','🔀','🔁','🔂','⏸️','⏹️','⏺️','🎦','🔅','🔆','📶']
 };
 
-// Alle Emojis zusammen
 EMOJI_DATA.all = Object.values(EMOJI_DATA).flat();
 
 /* ════════════════════════════════════
-   EMOJI PICKER INITIALISIEREN
+   EMOJI PICKER
 ════════════════════════════════════ */
 let selectedEmoji = '🔗';
 let pickerOpen = false;
@@ -145,10 +128,9 @@ function renderEmojiGrid(filter = '') {
 }
 
 function initEmojiPicker() {
-  const previewBtn     = document.getElementById('emojiPreviewBtn');
-  const pickerWrap     = document.getElementById('emojiPickerWrap');
-  const emojiSearch    = document.getElementById('emojiSearch');
-
+  const previewBtn  = document.getElementById('emojiPreviewBtn');
+  const pickerWrap  = document.getElementById('emojiPickerWrap');
+  const emojiSearch = document.getElementById('emojiSearch');
   if (!previewBtn) return;
 
   previewBtn.addEventListener('click', () => {
@@ -169,20 +151,17 @@ function initEmojiPicker() {
   });
 }
 
-/* Auto-Emoji wenn Name oder URL eingegeben wird */
 function initAutoEmoji() {
   const nameInput = document.getElementById('inputName');
   const urlInput  = document.getElementById('inputUrl');
-
   let userHasPicked = false;
 
-  // Reset wenn Modal geschlossen
   function resetEmojiPicker() {
     selectedEmoji = '🔗';
     userHasPicked = false;
-    const btn = document.getElementById('emojiPreviewBtn');
+    const btn   = document.getElementById('emojiPreviewBtn');
     const label = document.getElementById('emojiAutoLabel');
-    if (btn) btn.textContent = '🔗';
+    if (btn)   btn.textContent   = '🔗';
     if (label) label.textContent = 'Automatisch gewählt';
     pickerOpen = false;
     const wrap = document.getElementById('emojiPickerWrap');
@@ -193,23 +172,106 @@ function initAutoEmoji() {
     if (userHasPicked) return;
     const emoji = getAutoEmoji(nameInput.value, urlInput.value);
     selectedEmoji = emoji;
-    const btn = document.getElementById('emojiPreviewBtn');
+    const btn   = document.getElementById('emojiPreviewBtn');
     const label = document.getElementById('emojiAutoLabel');
-    if (btn) btn.textContent = emoji;
+    if (btn)   btn.textContent   = emoji;
     if (label) label.textContent = emoji !== '🔗' ? 'Automatisch gewählt' : 'Standard';
   }
 
   nameInput.addEventListener('input', updateAutoEmoji);
   urlInput.addEventListener('input', updateAutoEmoji);
 
-  /* Wenn User manuell wählt → userHasPicked = true */
   document.getElementById('emojiGrid')?.addEventListener('click', () => { userHasPicked = true; });
-
-  /* Reset beim Schließen des Modals */
   document.getElementById('modalClose').addEventListener('click', resetEmojiPicker);
   document.getElementById('modalOverlay').addEventListener('click', resetEmojiPicker);
+}
 
-  return resetEmojiPicker;
+/* ════════════════════════════════════
+   ZITAT
+════════════════════════════════════ */
+const QUOTES = [
+  { text: "Der einzige Weg, großartige Arbeit zu leisten, ist zu lieben, was man tut.", author: "Steve Jobs" },
+  { text: "Nicht weil es schwer ist, wagen wir es nicht, sondern weil wir es nicht wagen, ist es schwer.", author: "Seneca" },
+  { text: "In der Mitte jeder Schwierigkeit liegt eine Möglichkeit.", author: "Albert Einstein" },
+  { text: "Das Geheimnis des Vorwärtskommens ist, anzufangen.", author: "Mark Twain" },
+  { text: "Disziplin ist die Brücke zwischen Zielen und Erfolgen.", author: "Jim Rohn" },
+  { text: "Du musst die Veränderung sein, die du in der Welt sehen möchtest.", author: "Mahatma Gandhi" },
+  { text: "Erfolg ist die Summe kleiner Anstrengungen, die Tag für Tag wiederholt werden.", author: "Robert Collier" },
+  { text: "Wer aufhört, besser zu werden, hat aufgehört, gut zu sein.", author: "Philip Rosenthal" },
+  { text: "Das Leben ist das, was passiert, während du andere Pläne machst.", author: "John Lennon" },
+  { text: "Träume nicht dein Leben, lebe deinen Traum.", author: "Mark Twain" },
+  { text: "Der beste Zeitpunkt, einen Baum zu pflanzen, war vor 20 Jahren. Der zweitbeste ist jetzt.", author: "Chinesisches Sprichwort" },
+  { text: "Wenn du weißt, warum du aufstehst, ist es egal, wie.", author: "Friedrich Nietzsche" },
+  { text: "Perfektion ist nicht dann erreicht, wenn es nichts mehr hinzuzufügen gibt, sondern wenn man nichts mehr weglassen kann.", author: "Antoine de Saint-Exupéry" },
+  { text: "Wer kämpft, kann verlieren. Wer nicht kämpft, hat schon verloren.", author: "Bertolt Brecht" },
+  { text: "Die Zukunft gehört denen, die an die Schönheit ihrer Träume glauben.", author: "Eleanor Roosevelt" },
+  { text: "Tue jeden Tag etwas, wovor du Angst hast.", author: "Eleanor Roosevelt" },
+  { text: "Erfolg ist kein Schlüssel zum Glück. Glück ist der Schlüssel zum Erfolg.", author: "Albert Schweitzer" },
+  { text: "Dein einziger Konkurrent sollte dein gestrigeres Ich sein.", author: "Unbekannt" },
+  { text: "Fang an, wo du bist. Nutze, was du hast. Tue, was du kannst.", author: "Arthur Ashe" },
+  { text: "Kleine tägliche Verbesserungen führen zu atemberaubenden Ergebnissen über die Zeit.", author: "Robin Sharma" },
+  { text: "Der Unterschied zwischen ordinary und extraordinary ist das kleine Extra.", author: "Jimmy Johnson" },
+  { text: "Stärke wächst nicht aus körperlicher Kraft. Sie kommt aus unbezwingbarem Willen.", author: "Mahatma Gandhi" },
+  { text: "Jeder Experte war einmal ein Anfänger.", author: "Helen Hayes" },
+  { text: "Konzentriere dich auf das Wesentliche, lass den Rest los.", author: "Mark Twain" },
+  { text: "Es ist nicht genug zu wissen, man muss auch anwenden.", author: "Johann Wolfgang von Goethe" },
+];
+
+let currentQuoteIndex = -1;
+
+function getQuoteForToday() {
+  const day = new Date().toDateString();
+  const stored    = localStorage.getItem('quote_day');
+  const storedIdx = parseInt(localStorage.getItem('quote_idx'));
+  if (stored === day && !isNaN(storedIdx)) return storedIdx;
+  let idx;
+  do { idx = Math.floor(Math.random() * QUOTES.length); } while (idx === storedIdx);
+  localStorage.setItem('quote_day', day);
+  localStorage.setItem('quote_idx', idx);
+  return idx;
+}
+
+function showQuote(index, animate = false) {
+  const textEl   = document.getElementById('quoteText');
+  const authorEl = document.getElementById('quoteAuthor');
+  if (!textEl || !authorEl) return;
+  const quote = QUOTES[index];
+  if (animate) {
+    textEl.classList.add('fade');
+    authorEl.classList.add('fade');
+    setTimeout(() => {
+      textEl.textContent   = quote.text;
+      authorEl.textContent = '— ' + quote.author;
+      textEl.classList.remove('fade');
+      authorEl.classList.remove('fade');
+    }, 400);
+  } else {
+    textEl.textContent   = quote.text;
+    authorEl.textContent = '— ' + quote.author;
+  }
+  currentQuoteIndex = index;
+}
+
+function initQuote() {
+  const textEl   = document.getElementById('quoteText');
+  const authorEl = document.getElementById('quoteAuthor');
+  const refreshBtn = document.getElementById('quoteRefresh');
+  if (!textEl || !authorEl) return;
+
+  const idx = getQuoteForToday();
+  showQuote(idx);
+
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      let newIdx;
+      do { newIdx = Math.floor(Math.random() * QUOTES.length); }
+      while (newIdx === currentQuoteIndex);
+      refreshBtn.classList.add('spinning');
+      setTimeout(() => refreshBtn.classList.remove('spinning'), 400);
+      showQuote(newIdx, true);
+      localStorage.setItem('quote_idx', newIdx);
+    });
+  }
 }
 
 /* ════════════════════════════════════
@@ -235,7 +297,7 @@ function applySettings(s) {
       bg.style.backgroundImage = `url(${s.bgImage})`;
       bg.classList.add('active');
       const preview = document.getElementById('bgPreview');
-      const wrap = document.getElementById('bgPreviewWrap');
+      const wrap    = document.getElementById('bgPreviewWrap');
       if (preview) { preview.src = s.bgImage; wrap.style.display = ''; }
     } else {
       bg.style.backgroundImage = '';
@@ -244,7 +306,9 @@ function applySettings(s) {
   }
 }
 
-/* ── UHR ── */
+/* ════════════════════════════════════
+   UHR
+════════════════════════════════════ */
 function updateClocks() {
   const t = `${String(new Date().getHours()).padStart(2,'0')}:${String(new Date().getMinutes()).padStart(2,'0')}`;
   ['clock','loginClock'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = t; });
@@ -252,7 +316,9 @@ function updateClocks() {
 updateClocks();
 setInterval(updateClocks, 1000);
 
-/* ── BEGRÜSSUNG ── */
+/* ════════════════════════════════════
+   BEGRÜSSUNG
+════════════════════════════════════ */
 function setGreeting() {
   const el = document.getElementById('greeting');
   if (!el) return;
@@ -263,100 +329,9 @@ function setGreeting() {
   else                          el.textContent = 'Gute Nacht 🌙';
 }
 
-/* ── ZITAT ── */
-const QUOTES = [
-  { text: "Der einzige Weg, großartige Arbeit zu leisten, ist zu lieben, was man tut.", author: "Steve Jobs" },
-  { text: "Nicht weil es schwer ist, wagen wir es nicht, sondern weil wir es nicht wagen, ist es schwer.", author: "Seneca" },
-  { text: "In der Mitte jeder Schwierigkeit liegt eine Möglichkeit.", author: "Albert Einstein" },
-  { text: "Das Geheimnis des Vorwärtskommens ist, anzufangen.", author: "Mark Twain" },
-  { text: "Disziplin ist die Brücke zwischen Zielen und Erfolgen.", author: "Jim Rohn" },
-  { text: "Du musst die Veränderung sein, die du in der Welt sehen möchtest.", author: "Mahatma Gandhi" },
-  { text: "Erfolg ist die Summe kleiner Anstrengungen, die Tag für Tag wiederholt werden.", author: "Robert Collier" },
-  { text: "Wer aufhört, besser zu werden, hat aufgehört, gut zu sein.", author: "Philip Rosenthal" },
-  { text: "Das Leben ist das, was passiert, während du andere Pläne machst.", author: "John Lennon" },
-  { text: "Träume nicht dein Leben, lebe deinen Traum.", author: "Mark Twain" },
-  { text: "Der beste Zeitpunkt, einen Baum zu pflanzen, war vor 20 Jahren. Der zweitbeste ist jetzt.", author: "Chinesisches Sprichwort" },
-  { text: "Wenn du weißt, warum du aufstehst, ist es egal, wie.", author: "Friedrich Nietzsche" },
-  { text: "Es ist nicht genug zu wissen, man muss auch anwenden. Es ist nicht genug zu wollen, man muss auch tun.", author: "Johann Wolfgang von Goethe" },
-  { text: "Perfektion ist nicht dann erreicht, wenn es nichts mehr hinzuzufügen gibt, sondern wenn man nichts mehr weglassen kann.", author: "Antoine de Saint-Exupéry" },
-  { text: "Wer kämpft, kann verlieren. Wer nicht kämpft, hat schon verloren.", author: "Bertolt Brecht" },
-  { text: "Die Zukunft gehört denen, die an die Schönheit ihrer Träume glauben.", author: "Eleanor Roosevelt" },
-  { text: "Tue jeden Tag etwas, wovor du Angst hast.", author: "Eleanor Roosevelt" },
-  { text: "Erfolg ist kein Schlüssel zum Glück. Glück ist der Schlüssel zum Erfolg.", author: "Albert Schweitzer" },
-  { text: "Dein einziger Konkurrent sollte dein gestrigeres Ich sein.", author: "Unbekannt" },
-  { text: "Fang an, wo du bist. Nutze, was du hast. Tue, was du kannst.", author: "Arthur Ashe" },
-  { text: "Kleine tägliche Verbesserungen führen zu atemberaubenden Ergebnissen über die Zeit.", author: "Robin Sharma" },
-  { text: "Der Unterschied zwischen ordinary und extraordinary ist das kleine Extra.", author: "Jimmy Johnson" },
-  { text: "Stärke wächst nicht aus körperlicher Kraft. Sie kommt aus unbezwingbarem Willen.", author: "Mahatma Gandhi" },
-  { text: "Jeder Experte war einmal ein Anfänger.", author: "Helen Hayes" },
-  { text: "Konzentriere dich auf das Wesentliche, lass den Rest los.", author: "Mark Twain" },
-];
-
-let currentQuoteIndex = -1;
-
-function getQuoteForToday() {
-  const day = new Date().toDateString();
-  const stored = localStorage.getItem('quote_day');
-  const storedIdx = parseInt(localStorage.getItem('quote_idx'));
-
-  if (stored === day && !isNaN(storedIdx)) {
-    return storedIdx;
-  }
-
-  let idx;
-  do { idx = Math.floor(Math.random() * QUOTES.length); }
-  while (idx === storedIdx);
-
-  localStorage.setItem('quote_day', day);
-  localStorage.setItem('quote_idx', idx);
-  return idx;
-}
-
-function showQuote(index, animate = false) {
-  const textEl   = document.getElementById('quoteText');
-  const authorEl = document.getElementById('quoteAuthor');
-  if (!textEl || !authorEl) return;
-
-  const quote = QUOTES[index];
-
-  if (animate) {
-    textEl.classList.add('fade');
-    authorEl.classList.add('fade');
-    setTimeout(() => {
-      textEl.textContent   = quote.text;
-      authorEl.textContent = '— ' + quote.author;
-      textEl.classList.remove('fade');
-      authorEl.classList.remove('fade');
-    }, 400);
-  } else {
-    textEl.textContent   = quote.text;
-    authorEl.textContent = '— ' + quote.author;
-  }
-
-  currentQuoteIndex = index;
-}
-
-function initQuote() {
-  const idx = getQuoteForToday();
-  showQuote(idx);
-
-  const refreshBtn = document.getElementById('quoteRefresh');
-  if (!refreshBtn) return;
-
-  refreshBtn.addEventListener('click', () => {
-    let newIdx;
-    do { newIdx = Math.floor(Math.random() * QUOTES.length); }
-    while (newIdx === currentQuoteIndex);
-
-    refreshBtn.classList.add('spinning');
-    setTimeout(() => refreshBtn.classList.remove('spinning'), 400);
-
-    showQuote(newIdx, true);
-    localStorage.setItem('quote_idx', newIdx);
-  });
-}
-
-/* ── ICON ── */
+/* ════════════════════════════════════
+   ICON
+════════════════════════════════════ */
 function createIconElement(app) {
   const wrap = document.createElement('div');
   wrap.className = 'app-icon';
@@ -375,14 +350,18 @@ function createIconElement(app) {
   return wrap;
 }
 
-/* ── KLICK-ZÄHLER ── */
+/* ════════════════════════════════════
+   KLICK-ZÄHLER
+════════════════════════════════════ */
 async function incrementClick(app) {
   if (!currentUserId || !app.docId) return;
   app.clicks = (app.clicks || 0) + 1;
   try { await updateDoc(doc(db, "users", currentUserId, "apps", app.docId), { clicks: app.clicks }); } catch {}
 }
 
-/* ── GRID ── */
+/* ════════════════════════════════════
+   GRID
+════════════════════════════════════ */
 function buildGrid() {
   const wrapper = document.getElementById('gridWrapper');
   if (!wrapper) return;
@@ -418,7 +397,9 @@ function buildGrid() {
   initDragDrop();
 }
 
-/* ── CARD ── */
+/* ════════════════════════════════════
+   CARD
+════════════════════════════════════ */
 function buildCard(app, index) {
   const wrapper = document.createElement('div');
   wrapper.className = 'card-wrapper';
@@ -468,7 +449,9 @@ function buildCard(app, index) {
   return wrapper;
 }
 
-/* ── DRAG & DROP ── */
+/* ════════════════════════════════════
+   DRAG & DROP
+════════════════════════════════════ */
 let dragSrc = null;
 function initDragDrop() {
   document.querySelectorAll('.card-wrapper').forEach(w => {
@@ -493,14 +476,18 @@ function initDragDrop() {
   });
 }
 
-/* ── LÖSCHEN ── */
+/* ════════════════════════════════════
+   LÖSCHEN
+════════════════════════════════════ */
 async function deleteApp(docId) {
   if (!currentUserId || !docId) return;
   try { await deleteDoc(doc(db, "users", currentUserId, "apps", docId)); window.APPS = APPS.filter(a => a.docId !== docId); buildGrid(); }
   catch (err) { console.error("Löschen fehlgeschlagen:", err); }
 }
 
-/* ── BEARBEITEN ── */
+/* ════════════════════════════════════
+   BEARBEITEN
+════════════════════════════════════ */
 function openEditModal(app) {
   document.getElementById('editDocId').value    = app.docId;
   document.getElementById('editName').value     = app.name;
@@ -529,7 +516,9 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 });
 document.getElementById('editClose').addEventListener('click', () => closeModal('editModal'));
 
-/* ── FIREBASE LADEN ── */
+/* ════════════════════════════════════
+   FIREBASE LADEN
+════════════════════════════════════ */
 async function loadAppsFromFirebase() {
   if (!currentUserId) return;
   try {
@@ -540,13 +529,28 @@ async function loadAppsFromFirebase() {
   } catch (err) { console.error("Firebase Ladefehler:", err); }
 }
 
-/* ── AUTH ── */
+/* ════════════════════════════════════
+   AUTH
+════════════════════════════════════ */
 onAuthStateChanged(auth, async user => {
   const loginScreen = document.getElementById('loginScreen');
   const appEl       = document.getElementById('app');
   const userChip    = document.getElementById('userChip');
 
   if (user) {
+    // ── EMAIL WHITELIST ──
+  /*  const ALLOWED_EMAILS = [
+      'deine@email.com', // ← deine Email hier eintragen
+    ];
+    if (!ALLOWED_EMAILS.includes(user.email)) {
+      await signOut(auth);
+      loginScreen.style.display = 'flex';
+      appEl.style.display = 'none';
+      alert('Kein Zugriff. Diese Seite ist privat.');
+      return;
+    }
+
+    */
     currentUserId = user.uid;
     loginScreen.style.display = 'none';
     appEl.style.display = 'flex';
@@ -559,7 +563,7 @@ onAuthStateChanged(auth, async user => {
     initEmojiPicker();
     initAutoEmoji();
     await loadAppsFromFirebase();
-    loadWeather();
+    initQuote();
   } else {
     currentUserId = null;
     window.APPS = [];
@@ -572,7 +576,9 @@ onAuthStateChanged(auth, async user => {
 document.getElementById('loginBtn').addEventListener('click', () => signInWithPopup(auth, provider).catch(console.error));
 document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth).catch(console.error));
 
-/* ── SUCHE ── */
+/* ════════════════════════════════════
+   SUCHE
+════════════════════════════════════ */
 document.getElementById('searchInput').addEventListener('keydown', function(e) {
   if (e.key !== 'Enter') return;
   const query = this.value.trim();
@@ -582,7 +588,9 @@ document.getElementById('searchInput').addEventListener('keydown', function(e) {
   this.value = '';
 });
 
-/* ── TASTENKÜRZEL ── */
+/* ════════════════════════════════════
+   TASTENKÜRZEL
+════════════════════════════════════ */
 document.addEventListener('keydown', e => {
   const tag = document.activeElement.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA') return;
@@ -593,13 +601,17 @@ document.addEventListener('keydown', e => {
   if (found) window.open(found.url, '_blank');
 });
 
-/* ── MODAL HELFER ── */
+/* ════════════════════════════════════
+   MODAL HELFER
+════════════════════════════════════ */
 const overlay = document.getElementById('modalOverlay');
 function openModal(id) { document.getElementById(id).classList.add('open'); overlay.style.display = 'block'; }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); if (!document.querySelector('.modal.open')) overlay.style.display = 'none'; }
 overlay.addEventListener('click', () => { document.querySelectorAll('.modal.open').forEach(m => m.classList.remove('open')); overlay.style.display = 'none'; });
 
-/* ── ADD MODAL ── */
+/* ════════════════════════════════════
+   ADD MODAL
+════════════════════════════════════ */
 document.getElementById('addBtn').addEventListener('click', () => openModal('addModal'));
 document.getElementById('modalClose').addEventListener('click', () => closeModal('addModal'));
 
@@ -610,28 +622,17 @@ document.getElementById('addForm').addEventListener('submit', async function(e) 
   const url      = document.getElementById('inputUrl').value.trim();
   const sub      = document.getElementById('inputSub').value.trim();
   const category = document.getElementById('inputCategory').value.trim();
-
-  const newApp = {
-    name,
-    url:      url.startsWith('http') ? url : `https://${url}`,
-    iconType: 'emoji',
-    icon:     selectedEmoji,
-    sub:      sub || '',
-    category: category || '',
-    clicks:   0
-  };
-
+  const newApp   = { name, url: url.startsWith('http') ? url : `https://${url}`, iconType: 'emoji', icon: selectedEmoji, sub: sub||'', category: category||'', clicks: 0 };
   try {
     const docRef = await addDoc(collection(db, "users", currentUserId, "apps"), newApp);
     APPS.push({ ...newApp, docId: docRef.id });
-    buildGrid();
-    this.reset();
-    closeModal('addModal');
-    launchConfetti();
+    buildGrid(); this.reset(); closeModal('addModal'); launchConfetti();
   } catch (err) { console.error("Speichern fehlgeschlagen:", err); }
 });
 
-/* ── KONFETTI ── */
+/* ════════════════════════════════════
+   KONFETTI
+════════════════════════════════════ */
 function launchConfetti() {
   const canvas = document.getElementById('confettiCanvas');
   canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -646,11 +647,13 @@ function launchConfetti() {
   draw();
 }
 
-/* ── EINSTELLUNGEN UI ── */
+/* ════════════════════════════════════
+   EINSTELLUNGEN UI
+════════════════════════════════════ */
 function initSettingsUI() {
   const s = loadSettings();
 
-  const themeDark = document.getElementById('themeDark');
+  const themeDark  = document.getElementById('themeDark');
   const themeLight = document.getElementById('themeLight');
   function applyTheme(t) { saveSettings({ theme: t }); applySettings(loadSettings()); themeDark.classList.toggle('active', t==='dark'); themeLight.classList.toggle('active', t==='light'); }
   themeDark.classList.toggle('active', (s.theme||'dark')==='dark');
@@ -679,10 +682,6 @@ function initSettingsUI() {
   });
 
   document.getElementById('removeBg').addEventListener('click', () => { saveSettings({ bgImage: null }); const bg = document.getElementById('bgLayer'); bg.style.backgroundImage=''; bg.classList.remove('active'); document.getElementById('bgPreviewWrap').style.display='none'; });
-
-  const weatherKeyInput = document.getElementById('weatherApiKey');
-  weatherKeyInput.value = s.weatherApiKey || '';
-  document.getElementById('saveWeatherKey').addEventListener('click', () => { saveSettings({ weatherApiKey: weatherKeyInput.value.trim() }); closeModal('settingsModal'); loadWeather(); });
 
   renderShortcuts();
   document.getElementById('addShortcut').addEventListener('click', () => {
