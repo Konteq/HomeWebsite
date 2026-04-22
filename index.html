@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Startseite</title>
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -14,164 +13,114 @@
 </head>
 <body>
 
-  <!-- =============================================
-       HEADER: Uhrzeit + Begrüßung
-       ============================================= -->
-  <header class="header">
-    <div class="clock" id="clock">00:00</div>
-    <div class="greeting" id="greeting">Guten Morgen</div>
-  </header>
-
-  <!-- =============================================
-       SUCHLEISTE
-       ============================================= -->
-  <div class="search-wrapper">
-    <div class="search-bar">
-      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <input
-        type="text"
-        id="searchInput"
-        placeholder="Suchen oder URL eingeben..."
-        autocomplete="off"
-      />
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <div class="login-clock" id="loginClock">00:00</div>
+      <div class="login-title">Willkommen zurück</div>
+      <div class="login-sub">Melde dich an, um deine Apps zu sehen.</div>
+      <button id="loginBtn" class="google-btn">
+        <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Mit Google anmelden
+      </button>
     </div>
   </div>
 
-  <!-- =============================================
-       APP-KACHELN GRID
-       ============================================= -->
-  <main class="grid-wrapper">
-    <div class="section-label">Meine Apps</div>
-    <div class="app-grid" id="appGrid">
-      <!-- Kacheln werden per JavaScript eingefügt -->
+  <!-- HAUPT-APP -->
+  <div id="app" style="display:none;">
+
+    <header class="header">
+      <div class="clock" id="clock">00:00</div>
+      <div class="greeting" id="greeting">Guten Morgen</div>
+    </header>
+
+    <div class="search-wrapper">
+      <div class="search-bar">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Suchen oder URL eingeben..." autocomplete="off" />
+      </div>
     </div>
-  </main>
 
-  <!-- =============================================
-       „+" BUTTON (unten rechts, immer sichtbar)
-       ============================================= -->
-  <button class="add-btn" id="addBtn" title="App hinzufügen">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-      <line x1="12" y1="5" x2="12" y2="19"/>
-      <line x1="5"  y1="12" x2="19" y2="12"/>
-    </svg>
-  </button>
+    <main class="grid-wrapper">
+      <div class="section-label">Meine Apps</div>
+      <div class="app-grid" id="appGrid"></div>
+    </main>
 
-  <!-- =============================================
-       MODAL: Neue App hinzufügen
-       ============================================= -->
-
-  <!-- Dunkler Hintergrund hinter dem Modal -->
-  <div class="modal-overlay" id="modalOverlay"></div>
-
-  <!-- Modal-Fenster -->
-  <div class="modal" id="addModal">
-
-    <!-- Kopfzeile -->
-    <div class="modal-header">
-      <span class="modal-title">App hinzufügen</span>
-      <button class="modal-close" id="modalClose" title="Schließen">
+    <div class="user-chip" id="userChip" style="display:none;">
+      <img id="userAvatar" src="" alt="Avatar" />
+      <button id="logoutBtn" title="Abmelden">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6"  y1="6" x2="18" y2="18"/>
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
         </svg>
       </button>
     </div>
 
-    <!-- Formular -->
-    <form id="addForm">
+    <button class="add-btn" id="addBtn" title="App hinzufügen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5"  y1="12" x2="19" y2="12"/>
+      </svg>
+    </button>
 
-      <!-- Name & URL -->
-      <div class="form-group">
-        <label for="inputName">Name</label>
-        <input type="text" id="inputName" placeholder="z.B. GitHub" required />
+    <div class="modal-overlay" id="modalOverlay"></div>
+
+    <div class="modal" id="addModal">
+      <div class="modal-header">
+        <span class="modal-title">App hinzufügen</span>
+        <button class="modal-close" id="modalClose" title="Schließen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6"  y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
       </div>
 
-      <div class="form-group">
-        <label for="inputUrl">URL</label>
-        <input type="text" id="inputUrl" placeholder="z.B. github.com" required />
-      </div>
-
-      <div class="form-group">
-        <label for="inputSub">Beschreibung <span class="optional">(optional)</span></label>
-        <input type="text" id="inputSub" placeholder="z.B. Code" />
-      </div>
-
-      <!-- ── ICON-SCHALTER: Emoji ↔ Bild ── -->
-      <div class="form-group">
-        <label>Icon-Typ</label>
-        <div class="icon-toggle">
-          <!-- Emoji-Button (standard aktiv) -->
-          <button type="button" id="toggleEmoji" class="toggle-btn active">
-            😀 Emoji
-          </button>
-          <!-- Bild-Button -->
-          <button type="button" id="toggleImage" class="toggle-btn">
-            🖼️ Bild
-          </button>
+      <form id="addForm">
+        <div class="form-group">
+          <label for="inputName">Name</label>
+          <input type="text" id="inputName" placeholder="z.B. GitHub" required />
         </div>
-      </div>
-
-      <!-- Emoji-Eingabe (sichtbar wenn Emoji-Modus aktiv) -->
-      <div id="emojiArea" class="form-group">
-        <label for="inputEmoji">Emoji eingeben</label>
-        <input type="text" id="inputEmoji" placeholder="z.B. 🚀" maxlength="4" />
-      </div>
-
-      <!-- Bild-Upload (sichtbar wenn Bild-Modus aktiv) -->
-      <div id="imageArea" class="form-group" style="display:none">
-        <label>Bild hochladen</label>
-
-        <!-- Drop-Zone -->
-        <div class="drop-zone" id="dropZone">
-          <!-- Vorschau-Bild (versteckt bis Bild geladen) -->
-          <img id="imagePreview" src="" alt="Vorschau" style="display:none" />
-
-          <!-- Hinweistext (verschwindet wenn Bild geladen) -->
-          <div class="drop-hint">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
-            <span>Bild hierher ziehen<br/>oder klicken zum Auswählen</span>
+        <div class="form-group">
+          <label for="inputUrl">URL</label>
+          <input type="text" id="inputUrl" placeholder="z.B. github.com" required />
+        </div>
+        <div class="form-group">
+          <label for="inputSub">Beschreibung <span class="optional">(optional)</span></label>
+          <input type="text" id="inputSub" placeholder="z.B. Code" />
+        </div>
+        <div class="form-group">
+          <label>Icon-Typ</label>
+          <div class="icon-toggle">
+            <button type="button" id="toggleEmoji" class="toggle-btn active">😀 Emoji</button>
+            <button type="button" id="toggleImage" class="toggle-btn">🌐 Favicon</button>
           </div>
-
-          <!-- Versteckter Datei-Input -->
-          <input type="file" id="fileInput" accept="image/*" style="display:none" />
         </div>
-      </div>
+        <div id="emojiArea" class="form-group">
+          <label for="inputEmoji">Emoji eingeben</label>
+          <input type="text" id="inputEmoji" placeholder="z.B. 🚀" maxlength="4" />
+        </div>
+        <div id="imageArea" class="form-group" style="display:none">
+          <label>Favicon</label>
+          <div class="favicon-hint">Das Icon wird automatisch von der Website geladen.</div>
+        </div>
+        <button type="submit" class="submit-btn">Kachel hinzufügen</button>
+      </form>
+    </div>
 
-      <!-- Absenden-Button -->
-      <button type="submit" class="submit-btn">Kachel hinzufügen</button>
-
-    </form>
   </div>
-
-  <!-- Scripts: apps.js zuerst, dann main.js -->
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAVjuGZg8T8eMUHRVFS1K3Qk6cZXI2CSiM",
-    authDomain: "homewebsite-f5702.firebaseapp.com",
-    projectId: "homewebsite-f5702",
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  window.db = db;
-</script>
 
   <script src="./JS/apps.js"></script>
   <script type="module" src="./JS/main.js"></script>
-  
 
 </body>
 </html>
