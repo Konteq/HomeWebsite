@@ -1,10 +1,10 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import {
   getFirestore, collection, getDocs, addDoc
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import {
   getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAVjuGZg8T8eMUHRVFS1K3Qk6cZXI2CSiM",
@@ -18,8 +18,9 @@ const auth        = getAuth(firebaseApp);
 const provider    = new GoogleAuthProvider();
 
 window.APPS = [];
+let currentUserId = null; // ← merkt sich die User-ID
 
-/* ── UHR (läuft auf Login + App) ── */
+/* ── UHR ── */
 function updateClocks() {
   const now = new Date();
   const h = String(now.getHours()).padStart(2, '0');
@@ -69,7 +70,7 @@ function buildGrid() {
   if (!grid) return;
   grid.innerHTML = '';
   if (!window.APPS || APPS.length === 0) {
-    grid.innerHTML = '<p style="color:#555;font-size:13px;">Keine Apps definiert.</p>';
+    grid.innerHTML = '<p style="color:#555;font-size:13px;">Noch keine Apps hinzugefügt.</p>';
     return;
   }
   APPS.forEach((app, index) => {
@@ -93,10 +94,12 @@ function buildGrid() {
   });
 }
 
-/* ── FIREBASE LADEN ── */
+/* ── FIREBASE: Apps des eingeloggten Users laden ── */
 async function loadAppsFromFirebase() {
+  if (!currentUserId) return;
   try {
-    const snapshot = await getDocs(collection(db, "apps"));
+    // Pfad: users/{userId}/apps  → nur die Apps dieses Users
+    const snapshot = await getDocs(collection(db, "users", currentUserId, "apps"));
     window.APPS = [];
     snapshot.forEach(doc => APPS.push(doc.data()));
     buildGrid();
@@ -113,6 +116,7 @@ onAuthStateChanged(auth, async (user) => {
   const userAvatar  = document.getElementById('userAvatar');
 
   if (user) {
+    currentUserId = user.uid; // ← User-ID speichern
     loginScreen.style.display = 'none';
     app.style.display = 'flex';
     if (user.photoURL) {
@@ -122,6 +126,8 @@ onAuthStateChanged(auth, async (user) => {
     setGreeting();
     await loadAppsFromFirebase();
   } else {
+    currentUserId = null;
+    window.APPS = [];
     loginScreen.style.display = 'flex';
     app.style.display = 'none';
     if (userChip) userChip.style.display = 'none';
@@ -188,6 +194,8 @@ toggleImage.addEventListener('click', () => {
 /* ── FORMULAR ── */
 document.getElementById('addForm').addEventListener('submit', async function (e) {
   e.preventDefault();
+  if (!currentUserId) return;
+
   const name  = document.getElementById('inputName').value.trim();
   const url   = document.getElementById('inputUrl').value.trim();
   const sub   = document.getElementById('inputSub').value.trim();
@@ -202,7 +210,8 @@ document.getElementById('addForm').addEventListener('submit', async function (e)
   };
 
   try {
-    await addDoc(collection(db, "apps"), newApp);
+    // Speichern unter users/{userId}/apps
+    await addDoc(collection(db, "users", currentUserId, "apps"), newApp);
     APPS.push(newApp);
     buildGrid();
     this.reset();
