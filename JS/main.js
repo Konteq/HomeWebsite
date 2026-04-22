@@ -20,7 +20,201 @@ const provider    = new GoogleAuthProvider();
 window.APPS = [];
 let currentUserId = null;
 
-/* ── EINSTELLUNGEN ── */
+/* ════════════════════════════════════
+   AUTO-EMOJI DATENBANK
+════════════════════════════════════ */
+const AUTO_EMOJI_MAP = [
+  // Kommunikation
+  { keys: ['gmail','mail','email','post'],         emoji: '📧' },
+  { keys: ['whatsapp','telegram','signal'],         emoji: '💬' },
+  { keys: ['discord'],                              emoji: '🎮' },
+  { keys: ['slack'],                                emoji: '💼' },
+  { keys: ['zoom','meet','teams','conference'],     emoji: '📹' },
+  { keys: ['twitter','x.com','tweet'],              emoji: '🐦' },
+  { keys: ['instagram'],                            emoji: '📸' },
+  { keys: ['facebook'],                             emoji: '👥' },
+  { keys: ['linkedin'],                             emoji: '🤝' },
+  { keys: ['tiktok'],                               emoji: '🎵' },
+  { keys: ['reddit'],                               emoji: '🦊' },
+  { keys: ['pinterest'],                            emoji: '📌' },
+  // Entwicklung
+  { keys: ['github','gitlab','bitbucket'],          emoji: '🐙' },
+  { keys: ['stackoverflow','stack'],                emoji: '📚' },
+  { keys: ['vercel','netlify','hosting'],           emoji: '🚀' },
+  { keys: ['docker'],                               emoji: '🐳' },
+  { keys: ['figma','design','sketch'],              emoji: '🎨' },
+  { keys: ['vscode','code','editor'],               emoji: '💻' },
+  { keys: ['terminal','console','shell'],           emoji: '⌨️' },
+  // KI
+  { keys: ['chatgpt','openai'],                     emoji: '🤖' },
+  { keys: ['claude','anthropic'],                   emoji: '🧠' },
+  { keys: ['midjourney','dalle','stable'],          emoji: '🖼️' },
+  { keys: ['copilot'],                              emoji: '✈️' },
+  // Produktivität
+  { keys: ['notion'],                               emoji: '📓' },
+  { keys: ['obsidian','notes','notizen'],           emoji: '📝' },
+  { keys: ['trello','jira','asana','linear'],       emoji: '📋' },
+  { keys: ['calendar','kalender','cal'],            emoji: '📅' },
+  { keys: ['todoist','todo','tasks','aufgaben'],    emoji: '✅' },
+  { keys: ['airtable'],                             emoji: '🗂️' },
+  { keys: ['confluence','wiki','docs'],             emoji: '📖' },
+  // Google
+  { keys: ['google.com'],                           emoji: '🔍' },
+  { keys: ['drive','cloud','speicher'],             emoji: '☁️' },
+  { keys: ['sheets','excel','tabelle'],             emoji: '📊' },
+  { keys: ['docs','word','dokument'],               emoji: '📄' },
+  { keys: ['slides','powerpoint','präsentation'],   emoji: '🖥️' },
+  { keys: ['maps','karte','navigation'],            emoji: '🗺️' },
+  { keys: ['translate','übersetzer'],               emoji: '🌍' },
+  { keys: ['photos','bilder','gallery'],            emoji: '🖼️' },
+  // Medien
+  { keys: ['youtube'],                              emoji: '▶️' },
+  { keys: ['spotify','musik','music'],              emoji: '🎵' },
+  { keys: ['netflix'],                              emoji: '🎬' },
+  { keys: ['twitch'],                               emoji: '🎮' },
+  { keys: ['soundcloud'],                           emoji: '🎶' },
+  { keys: ['podcast'],                              emoji: '🎙️' },
+  { keys: ['deezer','apple music'],                 emoji: '🎧' },
+  { keys: ['vimeo'],                                emoji: '📽️' },
+  // Shopping
+  { keys: ['amazon'],                               emoji: '📦' },
+  { keys: ['ebay'],                                 emoji: '🏷️' },
+  { keys: ['paypal','payment','zahlung'],           emoji: '💳' },
+  { keys: ['bank','banking','konto'],               emoji: '🏦' },
+  { keys: ['crypto','bitcoin','ethereum'],          emoji: '₿' },
+  // Sonstiges
+  { keys: ['protonmail','proton'],                  emoji: '🔒' },
+  { keys: ['bitwarden','lastpass','1password'],     emoji: '🔑' },
+  { keys: ['weather','wetter'],                     emoji: '⛅' },
+  { keys: ['news','zeitung','heise','spiegel'],     emoji: '📰' },
+  { keys: ['wikipedia'],                            emoji: '📚' },
+  { keys: ['recipe','rezept','kochen'],             emoji: '🍳' },
+  { keys: ['fitness','gym','sport'],                emoji: '💪' },
+  { keys: ['travel','reise','flug'],                emoji: '✈️' },
+  { keys: ['game','spiel','steam'],                 emoji: '🎮' },
+];
+
+function getAutoEmoji(name, url) {
+  const haystack = `${name} ${url}`.toLowerCase();
+  for (const entry of AUTO_EMOJI_MAP) {
+    if (entry.keys.some(k => haystack.includes(k))) return entry.emoji;
+  }
+  return '🔗';
+}
+
+/* ════════════════════════════════════
+   EMOJI PICKER DATEN
+════════════════════════════════════ */
+const EMOJI_DATA = {
+  smileys: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','😙','😚','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿'],
+  tech: ['💻','🖥️','🖨️','⌨️','🖱️','🖲️','💾','💿','📀','📱','☎️','📞','📟','📠','📺','📷','📸','📹','🎥','📽️','🎞️','📡','🔋','🔌','💡','🔦','🕯️','🧯','🛢️','💰','💴','💵','💶','💷','💸','💳','🧾','⚙️','🔧','🔨','⚒️','🛠️','⛏️','🔩','🗜️','⚖️','🔗','⛓️','🧲','🔫','💣','🔪','🗡️','⚔️','🛡️','🚬','🔭','🔬','🩺','💊','🩹','🩼','🩻','🧬','🦠','🧫','🧪','🌡️','🧹','🧺','🧻','🚪','🛋️','🪑','🚽','🚿','🛁','🧴','🧷','🧸','🖼️','🛍️','🎁','🎀'],
+  objects: ['📦','📫','📪','📬','📭','📮','🗳️','✏️','✒️','🖋️','🖊️','📝','📁','📂','🗂️','📅','📆','🗒️','🗓️','📇','📈','📉','📊','📋','📌','📍','✂️','🗃️','🗄️','🗑️','🔒','🔓','🔏','🔐','🔑','🗝️','🔨','🪓','⛏️','🔧','🪛','🔩','⚙️','🗜️','⚖️','🦯','🔗','⛓️','🪝','🧲','🪜','🧪','🧫','🧬','🔭','🔬','🩺','💈','⚗️','🔮','🪄','🧿','🪬','🧸','🪅','🎭','🎨','🖼️','🎰','🎲','🧩','♟️','🎯','🎳','🏹','🎣','🤿','🥊','🥋','🎽','⛸️','🛷','🛹','🛼'],
+  symbols: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','☸️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','🔕','🔇','🔈','🔉','🔊','📢','📣','📯','🔔','🔕','🎵','🎶','⚠️','🚸','♻️','✅','❎','🔱','⚜️','🔰','♾️','⭕','✔️','❎','➕','➖','➗','✖️','❓','❔','❕','❗','〰️','💱','💲','⚕️','♀️','♂️','⚧️','✳️','❇️','🔀','🔁','🔂','▶️','⏩','⏭️','⏯️','◀️','⏪','⏮️','🔼','⏫','🔽','⏬','⏸️','⏹️','⏺️','⏏️','🎦','🔅','🔆','📶','📳','📴','📵','📲','☎️','🔋','🪫','🔌']
+};
+
+// Alle Emojis zusammen
+EMOJI_DATA.all = Object.values(EMOJI_DATA).flat();
+
+/* ════════════════════════════════════
+   EMOJI PICKER INITIALISIEREN
+════════════════════════════════════ */
+let selectedEmoji = '🔗';
+let pickerOpen = false;
+let currentCat = 'all';
+
+function renderEmojiGrid(filter = '') {
+  const grid = document.getElementById('emojiGrid');
+  if (!grid) return;
+  const emojis = EMOJI_DATA[currentCat] || EMOJI_DATA.all;
+  const filtered = filter ? emojis.filter(e => e.includes(filter)) : emojis;
+  grid.innerHTML = '';
+  filtered.forEach(em => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'emoji-btn' + (em === selectedEmoji ? ' selected' : '');
+    btn.textContent = em;
+    btn.addEventListener('click', () => {
+      selectedEmoji = em;
+      document.getElementById('emojiPreviewBtn').textContent = em;
+      document.getElementById('emojiAutoLabel').textContent = 'Manuell gewählt';
+      document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+    grid.appendChild(btn);
+  });
+}
+
+function initEmojiPicker() {
+  const previewBtn     = document.getElementById('emojiPreviewBtn');
+  const pickerWrap     = document.getElementById('emojiPickerWrap');
+  const emojiSearch    = document.getElementById('emojiSearch');
+
+  if (!previewBtn) return;
+
+  previewBtn.addEventListener('click', () => {
+    pickerOpen = !pickerOpen;
+    pickerWrap.style.display = pickerOpen ? '' : 'none';
+    if (pickerOpen) { renderEmojiGrid(); emojiSearch.focus(); }
+  });
+
+  emojiSearch.addEventListener('input', () => renderEmojiGrid(emojiSearch.value));
+
+  document.querySelectorAll('.emoji-cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentCat = btn.dataset.cat;
+      document.querySelectorAll('.emoji-cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderEmojiGrid(emojiSearch.value);
+    });
+  });
+}
+
+/* Auto-Emoji wenn Name oder URL eingegeben wird */
+function initAutoEmoji() {
+  const nameInput = document.getElementById('inputName');
+  const urlInput  = document.getElementById('inputUrl');
+
+  let userHasPicked = false;
+
+  // Reset wenn Modal geschlossen
+  function resetEmojiPicker() {
+    selectedEmoji = '🔗';
+    userHasPicked = false;
+    const btn = document.getElementById('emojiPreviewBtn');
+    const label = document.getElementById('emojiAutoLabel');
+    if (btn) btn.textContent = '🔗';
+    if (label) label.textContent = 'Automatisch gewählt';
+    pickerOpen = false;
+    const wrap = document.getElementById('emojiPickerWrap');
+    if (wrap) wrap.style.display = 'none';
+  }
+
+  function updateAutoEmoji() {
+    if (userHasPicked) return;
+    const emoji = getAutoEmoji(nameInput.value, urlInput.value);
+    selectedEmoji = emoji;
+    const btn = document.getElementById('emojiPreviewBtn');
+    const label = document.getElementById('emojiAutoLabel');
+    if (btn) btn.textContent = emoji;
+    if (label) label.textContent = emoji !== '🔗' ? 'Automatisch gewählt' : 'Standard';
+  }
+
+  nameInput.addEventListener('input', updateAutoEmoji);
+  urlInput.addEventListener('input', updateAutoEmoji);
+
+  /* Wenn User manuell wählt → userHasPicked = true */
+  document.getElementById('emojiGrid')?.addEventListener('click', () => { userHasPicked = true; });
+
+  /* Reset beim Schließen des Modals */
+  document.getElementById('modalClose').addEventListener('click', resetEmojiPicker);
+  document.getElementById('modalOverlay').addEventListener('click', resetEmojiPicker);
+
+  return resetEmojiPicker;
+}
+
+/* ════════════════════════════════════
+   EINSTELLUNGEN
+════════════════════════════════════ */
 const SETTINGS_KEY = 'startseite_settings';
 function loadSettings() { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch { return {}; } }
 function saveSettings(patch) { const s = { ...loadSettings(), ...patch }; localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); return s; }
@@ -113,10 +307,6 @@ function createIconElement(app) {
     img.src = `https://www.google.com/s2/favicons?sz=64&domain_url=${encodeURIComponent(app.url)}`;
     img.onerror = () => { wrap.textContent = app.name.charAt(0).toUpperCase(); };
     wrap.appendChild(img);
-  } else if (app.iconType === 'image') {
-    const img = document.createElement('img');
-    img.src = app.icon;
-    wrap.appendChild(img);
   } else {
     wrap.textContent = app.icon || '🔗';
   }
@@ -162,7 +352,6 @@ function buildGrid() {
     section.appendChild(label);
     const grid = document.createElement('div');
     grid.className = 'app-grid';
-    grid.dataset.category = catName;
     apps.forEach((app, i) => grid.appendChild(buildCard(app, i)));
     section.appendChild(grid);
     wrapper.appendChild(section);
@@ -309,6 +498,8 @@ onAuthStateChanged(auth, async user => {
     setGreeting();
     applySettings(loadSettings());
     initSettingsUI();
+    initEmojiPicker();
+    initAutoEmoji();
     await loadAppsFromFirebase();
     loadWeather();
   } else {
@@ -338,38 +529,21 @@ document.addEventListener('keydown', e => {
   const tag = document.activeElement.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA') return;
   const shortcuts = loadSettings().shortcuts || {};
-  const found = APPS.find(a => a.name.toLowerCase().includes((shortcuts[e.key.toLowerCase()]||'').toLowerCase()));
-  if (found && shortcuts[e.key.toLowerCase()]) window.open(found.url, '_blank');
+  const appName = shortcuts[e.key.toLowerCase()];
+  if (!appName) return;
+  const found = APPS.find(a => a.name.toLowerCase().includes(appName.toLowerCase()));
+  if (found) window.open(found.url, '_blank');
 });
 
 /* ── MODAL HELFER ── */
 const overlay = document.getElementById('modalOverlay');
-
 function openModal(id) { document.getElementById(id).classList.add('open'); overlay.style.display = 'block'; }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); if (!document.querySelector('.modal.open')) overlay.style.display = 'none'; }
-
 overlay.addEventListener('click', () => { document.querySelectorAll('.modal.open').forEach(m => m.classList.remove('open')); overlay.style.display = 'none'; });
 
 /* ── ADD MODAL ── */
-let currentIconMode = 'emoji';
 document.getElementById('addBtn').addEventListener('click', () => openModal('addModal'));
 document.getElementById('modalClose').addEventListener('click', () => closeModal('addModal'));
-
-document.getElementById('toggleEmoji').addEventListener('click', () => {
-  currentIconMode = 'emoji';
-  document.getElementById('toggleEmoji').classList.add('active');
-  document.getElementById('toggleFavicon').classList.remove('active');
-  document.getElementById('emojiArea').style.display = '';
-  document.getElementById('faviconArea').style.display = 'none';
-});
-
-document.getElementById('toggleFavicon').addEventListener('click', () => {
-  currentIconMode = 'favicon';
-  document.getElementById('toggleFavicon').classList.add('active');
-  document.getElementById('toggleEmoji').classList.remove('active');
-  document.getElementById('emojiArea').style.display = 'none';
-  document.getElementById('faviconArea').style.display = '';
-});
 
 document.getElementById('addForm').addEventListener('submit', async function(e) {
   e.preventDefault();
@@ -378,12 +552,24 @@ document.getElementById('addForm').addEventListener('submit', async function(e) 
   const url      = document.getElementById('inputUrl').value.trim();
   const sub      = document.getElementById('inputSub').value.trim();
   const category = document.getElementById('inputCategory').value.trim();
-  const emoji    = document.getElementById('inputEmoji').value.trim();
-  const newApp   = { name, url: url.startsWith('http') ? url : `https://${url}`, iconType: currentIconMode, icon: currentIconMode === 'emoji' ? (emoji||'🔗') : '', sub: sub||'', category: category||'', clicks: 0 };
+
+  const newApp = {
+    name,
+    url:      url.startsWith('http') ? url : `https://${url}`,
+    iconType: 'emoji',
+    icon:     selectedEmoji,
+    sub:      sub || '',
+    category: category || '',
+    clicks:   0
+  };
+
   try {
     const docRef = await addDoc(collection(db, "users", currentUserId, "apps"), newApp);
     APPS.push({ ...newApp, docId: docRef.id });
-    buildGrid(); this.reset(); closeModal('addModal'); launchConfetti();
+    buildGrid();
+    this.reset();
+    closeModal('addModal');
+    launchConfetti();
   } catch (err) { console.error("Speichern fehlgeschlagen:", err); }
 });
 
@@ -394,11 +580,10 @@ function launchConfetti() {
   const ctx = canvas.getContext('2d');
   const pieces = Array.from({ length: 120 }, () => ({ x: Math.random()*canvas.width, y: -10, r: Math.random()*6+4, c: `hsl(${Math.random()*360},70%,60%)`, vx: (Math.random()-.5)*4, vy: Math.random()*4+2, life: 1 }));
   function draw() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    let alive = false;
-    pieces.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.vy+=0.08; p.life-=0.012; if (p.life<=0) return; alive=true; ctx.globalAlpha=p.life; ctx.fillStyle=p.c; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); });
+    ctx.clearRect(0,0,canvas.width,canvas.height); let alive = false;
+    pieces.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.vy+=0.08; p.life-=0.012; if(p.life<=0)return; alive=true; ctx.globalAlpha=p.life; ctx.fillStyle=p.c; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); });
     ctx.globalAlpha=1;
-    if (alive) requestAnimationFrame(draw); else ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(alive) requestAnimationFrame(draw); else ctx.clearRect(0,0,canvas.width,canvas.height);
   }
   draw();
 }

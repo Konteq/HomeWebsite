@@ -57,7 +57,10 @@
 
     <div class="widget note-widget">
       <div class="note-header">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
         Notizen
       </div>
       <textarea id="notepad" placeholder="Schnelle Notizen..."></textarea>
@@ -133,20 +136,36 @@
         <input type="text" id="inputCategory" placeholder="z.B. Arbeit" list="categoryList" />
         <datalist id="categoryList"></datalist>
       </div>
+
+      <!-- EMOJI ICON -->
       <div class="form-group">
-        <label>Icon-Typ</label>
-        <div class="icon-toggle">
-          <button type="button" id="toggleEmoji" class="toggle-btn active">😀 Emoji</button>
-          <button type="button" id="toggleFavicon" class="toggle-btn">🌐 Favicon</button>
+        <label>Icon</label>
+        <div class="emoji-selector">
+          <button type="button" id="emojiPreviewBtn" class="emoji-preview-btn" title="Emoji auswählen">
+            🔗
+          </button>
+          <div class="emoji-selector-info">
+            <span class="emoji-auto-label" id="emojiAutoLabel">Automatisch gewählt</span>
+            <span class="emoji-hint">Klick zum Ändern</span>
+          </div>
         </div>
       </div>
-      <div id="emojiArea" class="form-group">
-        <label>Emoji</label>
-        <input type="text" id="inputEmoji" placeholder="z.B. 🚀" maxlength="4" />
+
+      <!-- EMOJI PICKER -->
+      <div id="emojiPickerWrap" style="display:none;">
+        <div class="emoji-search-bar">
+          <input type="text" id="emojiSearch" placeholder="Emoji suchen..." />
+        </div>
+        <div class="emoji-categories">
+          <button type="button" class="emoji-cat-btn active" data-cat="all">Alle</button>
+          <button type="button" class="emoji-cat-btn" data-cat="smileys">😀</button>
+          <button type="button" class="emoji-cat-btn" data-cat="tech">💻</button>
+          <button type="button" class="emoji-cat-btn" data-cat="objects">📦</button>
+          <button type="button" class="emoji-cat-btn" data-cat="symbols">🔣</button>
+        </div>
+        <div class="emoji-grid" id="emojiGrid"></div>
       </div>
-      <div id="faviconArea" class="form-group" style="display:none;">
-        <div class="favicon-hint">Das Icon wird automatisch von der Website geladen.</div>
-      </div>
+
       <button type="submit" class="submit-btn">Kachel hinzufügen</button>
     </form>
   </div>
