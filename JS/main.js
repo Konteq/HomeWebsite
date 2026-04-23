@@ -1,13 +1,4 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-import {
-  getFirestore, collection, getDocs, addDoc, deleteDoc, updateDoc, doc
-} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-import {
-  getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getFirestore, collection, getDocs, addDoc, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app-check.js";
@@ -29,17 +20,6 @@ initializeAppCheck(firebaseApp, {
 const db       = getFirestore(firebaseApp);
 const auth     = getAuth(firebaseApp);
 const provider = new GoogleAuthProvider();
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAVjuGZg8T8eMUHRVFS1K3Qk6cZXI2CSiM",
-  authDomain: "homewebsite-f5702.firebaseapp.com",
-  projectId: "homewebsite-f5702"
-};
-
-const firebaseApp = initializeApp(firebaseConfig);
-const db          = getFirestore(firebaseApp);
-const auth        = getAuth(firebaseApp);
-const provider    = new GoogleAuthProvider();
 
 window.APPS = [];
 let currentUserId = null;
@@ -562,19 +542,6 @@ onAuthStateChanged(auth, async user => {
   const userChip    = document.getElementById('userChip');
 
   if (user) {
-    // ── EMAIL WHITELIST ──
-  /*  const ALLOWED_EMAILS = [
-      'deine@email.com', // ← deine Email hier eintragen
-    ];
-    if (!ALLOWED_EMAILS.includes(user.email)) {
-      await signOut(auth);
-      loginScreen.style.display = 'flex';
-      appEl.style.display = 'none';
-      alert('Kein Zugriff. Diese Seite ist privat.');
-      return;
-    }
-
-    */
     currentUserId = user.uid;
     loginScreen.style.display = 'none';
     appEl.style.display = 'flex';
