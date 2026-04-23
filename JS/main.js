@@ -6,6 +6,30 @@ import {
   getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app-check.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAVjuGZg8T8eMUHRVFS1K3Qk6cZXI2CSiM",
+  authDomain: "homewebsite-f5702.firebaseapp.com",
+  projectId: "homewebsite-f5702"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+
+/* ── APP CHECK ── */
+initializeAppCheck(firebaseApp, {
+  provider: new ReCaptchaV3Provider('6LenH8YsAAAAAM0GaumGKYLgxS6ySyBoENSImg3A'),
+  isTokenAutoRefreshEnabled: true
+});
+
+const db       = getFirestore(firebaseApp);
+const auth     = getAuth(firebaseApp);
+const provider = new GoogleAuthProvider();
+
 const firebaseConfig = {
   apiKey: "AIzaSyAVjuGZg8T8eMUHRVFS1K3Qk6cZXI2CSiM",
   authDomain: "homewebsite-f5702.firebaseapp.com",
