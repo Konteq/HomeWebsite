@@ -16,6 +16,7 @@
     <div class="login-clock" id="loginClock">00:00</div>
     <div class="login-title">Willkommen zurück</div>
     <div class="login-sub">Melde dich an, um deine Apps zu sehen.</div>
+    <div class="auth-error" id="loginError" style="display:none;"></div>
     <button id="loginBtn" class="google-btn">
       <svg viewBox="0 0 24 24" width="18" height="18">
         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -25,6 +26,20 @@
       </svg>
       Mit Google anmelden
     </button>
+
+    <div class="auth-divider"><span>oder</span></div>
+
+    <div class="email-auth">
+      <div class="email-form-title" id="emailFormTitle">Mit E-Mail anmelden</div>
+      <input type="email"    id="emailInput"    class="auth-input" placeholder="E-Mail" autocomplete="email" />
+      <input type="password" id="passwordInput" class="auth-input" placeholder="Passwort" autocomplete="current-password" />
+      <div class="auth-error" id="authError" style="display:none;"></div>
+      <button id="emailSubmitBtn" class="auth-submit-btn">Anmelden</button>
+      <div class="auth-toggle">
+        <span id="authToggleText">Noch kein Konto?</span>
+        <a id="authToggleLink" href="#">Registrieren</a>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -151,7 +166,8 @@
         <div class="emoji-grid" id="emojiGrid"></div>
       </div>
 
-      <button type="submit" class="submit-btn">Kachel hinzufügen</button>
+      <div class="auth-error" id="addFormError" style="display:none;"></div>
+      <button type="submit" class="submit-btn" id="addSubmitBtn">Kachel hinzufügen</button>
     </form>
   </div>
 
@@ -212,7 +228,7 @@
       </div>
     </div>
     <div class="settings-section">
-      <div class="settings-label">OpenWeatherMap API Key</div>
+  <!--    <div class="settings-label">OpenWeatherMap API Key</div> -->
       <div class="form-group">
       
  <!--   <input type="text" id="weatherApiKey" placeholder="Dein API Key..." />-->

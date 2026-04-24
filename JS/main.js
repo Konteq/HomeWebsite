@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getFirestore, collection, getDocs, addDoc, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, GoogleAuthProvider, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app-check.js";
 
 const firebaseConfig = {
@@ -525,12 +525,12 @@ document.getElementById('editClose').addEventListener('click', () => closeModal(
 ════════════════════════════════════ */
 async function loadAppsFromFirebase() {
   if (!currentUserId) return;
+  window.APPS = [];
   try {
     const snapshot = await getDocs(collection(db, "users", currentUserId, "apps"));
-    window.APPS = [];
     snapshot.forEach(d => APPS.push({ ...d.data(), docId: d.id }));
-    buildGrid();
   } catch (err) { console.error("Firebase Ladefehler:", err); }
+  buildGrid();
 }
 
 /* ════════════════════════════════════
@@ -564,8 +564,91 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-document.getElementById('loginBtn').addEventListener('click', () => signInWithPopup(auth, provider).catch(console.error));
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+
+getRedirectResult(auth).catch(err => {
+  console.error('Redirect-Fehler:', err);
+  showLoginError('Google-Login fehlgeschlagen: ' + (err.message || err.code));
+});
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  document.getElementById('loginError').style.display = 'none';
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (popupErr) {
+    if (popupErr.code === 'auth/popup-blocked' || popupErr.code === 'auth/popup-closed-by-user') {
+      try {
+        await signInWithRedirect(auth, provider);
+      } catch (redirectErr) {
+        showLoginError('Google-Login fehlgeschlagen: ' + (redirectErr.message || redirectErr.code));
+      }
+    } else if (popupErr.code !== 'auth/cancelled-popup-request') {
+      showLoginError('Google-Login fehlgeschlagen: ' + (popupErr.message || popupErr.code));
+    }
+  }
+});
 document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth).catch(console.error));
+
+/* ════════════════════════════════════
+   EMAIL AUTH
+════════════════════════════════════ */
+(function initEmailAuth() {
+  const emailInput    = document.getElementById('emailInput');
+  const passwordInput = document.getElementById('passwordInput');
+  const submitBtn     = document.getElementById('emailSubmitBtn');
+  const toggleLink    = document.getElementById('authToggleLink');
+  const toggleText    = document.getElementById('authToggleText');
+  const formTitle     = document.getElementById('emailFormTitle');
+  const errorMsg      = document.getElementById('authError');
+
+  let isRegister = false;
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.style.display = 'block';
+  }
+  function clearError() { errorMsg.style.display = 'none'; }
+
+  toggleLink.addEventListener('click', () => {
+    isRegister = !isRegister;
+    formTitle.textContent   = isRegister ? 'Konto erstellen' : 'Mit E-Mail anmelden';
+    submitBtn.textContent   = isRegister ? 'Registrieren' : 'Anmelden';
+    toggleText.textContent  = isRegister ? 'Bereits ein Konto?' : 'Noch kein Konto?';
+    toggleLink.textContent  = isRegister ? 'Anmelden' : 'Registrieren';
+    clearError();
+  });
+
+  const FIREBASE_ERRORS = {
+    'auth/invalid-email':          'Ungültige E-Mail-Adresse.',
+    'auth/user-not-found':         'Kein Konto mit dieser E-Mail.',
+    'auth/wrong-password':         'Falsches Passwort.',
+    'auth/email-already-in-use':   'E-Mail wird bereits verwendet.',
+    'auth/weak-password':          'Passwort muss mindestens 6 Zeichen haben.',
+    'auth/too-many-requests':      'Zu viele Versuche. Bitte kurz warten.',
+    'auth/invalid-credential':     'E-Mail oder Passwort falsch.',
+  };
+
+  submitBtn.addEventListener('click', async () => {
+    clearError();
+    const email    = emailInput.value.trim();
+    const password = passwordInput.value;
+    if (!email || !password) { showError('Bitte E-Mail und Passwort eingeben.'); return; }
+    submitBtn.disabled = true;
+    try {
+      if (isRegister) await createUserWithEmailAndPassword(auth, email, password);
+      else            await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      showError(FIREBASE_ERRORS[err.code] || 'Fehler: ' + err.message);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  [emailInput, passwordInput].forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') submitBtn.click(); }));
+})();
 
 /* ════════════════════════════════════
    SUCHE
@@ -608,17 +691,34 @@ document.getElementById('modalClose').addEventListener('click', () => closeModal
 
 document.getElementById('addForm').addEventListener('submit', async function(e) {
   e.preventDefault();
-  if (!currentUserId) return;
+  const errorEl  = document.getElementById('addFormError');
+  const submitEl = document.getElementById('addSubmitBtn');
+  errorEl.style.display = 'none';
+
+  if (!currentUserId) {
+    errorEl.textContent = 'Nicht eingeloggt. Bitte Seite neu laden.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
   const name     = document.getElementById('inputName').value.trim();
   const url      = document.getElementById('inputUrl').value.trim();
   const sub      = document.getElementById('inputSub').value.trim();
   const category = document.getElementById('inputCategory').value.trim();
   const newApp   = { name, url: url.startsWith('http') ? url : `https://${url}`, iconType: 'emoji', icon: selectedEmoji, sub: sub||'', category: category||'', clicks: 0 };
+
+  submitEl.disabled = true;
   try {
     const docRef = await addDoc(collection(db, "users", currentUserId, "apps"), newApp);
     APPS.push({ ...newApp, docId: docRef.id });
     buildGrid(); this.reset(); closeModal('addModal'); launchConfetti();
-  } catch (err) { console.error("Speichern fehlgeschlagen:", err); }
+  } catch (err) {
+    console.error("Speichern fehlgeschlagen:", err);
+    errorEl.textContent = 'Fehler: ' + (err.message || err.code || 'Unbekannt');
+    errorEl.style.display = 'block';
+  } finally {
+    submitEl.disabled = false;
+  }
 });
 
 /* ════════════════════════════════════
