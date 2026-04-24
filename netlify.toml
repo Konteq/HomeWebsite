@@ -3,3 +3,23 @@
   [headers.values]
     Cross-Origin-Opener-Policy = "unsafe-none"
     Cross-Origin-Embedder-Policy = "unsafe-none"
+
+[[headers]]
+  for = "/Style/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/JS/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-cache"
