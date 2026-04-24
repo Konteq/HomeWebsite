@@ -50,6 +50,37 @@
 
   <div id="bgLayer"></div>
 
+  <!-- Pomodoro Trigger -->
+  <button class="pomo-trigger" id="pomoTrigger" title="Pomodoro Timer">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    </svg>
+    <span id="pomoTriggerLabel">25:00</span>
+  </button>
+
+  <!-- Pomodoro Panel -->
+  <div class="pomo-panel" id="pomoPanel">
+    <div class="pomo-mode-label" id="pomoModeLabel">FOKUS</div>
+    <div class="pomo-ring-wrap">
+      <svg class="pomo-ring" viewBox="0 0 100 100">
+        <circle class="pomo-ring-bg" cx="50" cy="50" r="42"/>
+        <circle class="pomo-ring-progress" id="pomoProgress" cx="50" cy="50" r="42" transform="rotate(-90 50 50)"/>
+      </svg>
+      <div class="pomo-time" id="pomoTime">25:00</div>
+    </div>
+    <div class="pomo-controls">
+      <button class="pomo-btn" id="pomoSkip" title="Überspringen">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+      </button>
+      <button class="pomo-btn primary" id="pomoToggle">▶</button>
+      <button class="pomo-btn" id="pomoClose" title="Schließen">✕</button>
+    </div>
+    <div class="pomo-sessions">
+      <div class="pomo-dot"></div><div class="pomo-dot"></div>
+      <div class="pomo-dot"></div><div class="pomo-dot"></div>
+    </div>
+  </div>
+
   <header class="header">
     <div class="clock" id="clock">00:00</div>
     <div class="greeting" id="greeting">Guten Morgen</div>
@@ -67,6 +98,20 @@
         <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
       </svg>
     </button>
+  </div>
+
+  <div class="widget todo-widget">
+    <div class="todo-header">
+      <span class="todo-title">Aufgaben</span>
+      <span class="todo-open-count" id="todoCount"></span>
+    </div>
+    <div class="todo-list" id="todoList">
+      <div class="todo-empty">Noch keine Aufgaben.</div>
+    </div>
+    <div class="todo-add-row">
+      <input type="text" class="todo-input" id="todoInput" placeholder="Neue Aufgabe..." maxlength="150" />
+      <button class="todo-add-btn" id="todoAddBtn">+</button>
+    </div>
   </div>
 </div>
 

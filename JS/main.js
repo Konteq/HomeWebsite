@@ -210,7 +210,7 @@ const QUOTES = [
   { text: "Stärke wächst nicht aus körperlicher Kraft. Sie kommt aus unbezwingbarem Willen.", author: "Mahatma Gandhi" },
   { text: "Jeder Experte war einmal ein Anfänger.", author: "Helen Hayes" },
   { text: "Konzentriere dich auf das Wesentliche, lass den Rest los.", author: "Mark Twain" },
-  { text: "Es ist nicht genug zu wissen, man muss auch anwenden.", author: "Johann Wolfgang von Goethe" },
+  { text: "Leck Eier", author: "Johann Wolfgang von Goethe" },
 ];
 
 let currentQuoteIndex = -1;
@@ -546,6 +546,7 @@ onAuthStateChanged(auth, async user => {
     initEmojiPicker();
     initAutoEmoji();
     await loadAppsFromFirebase();
+    await loadTodos();
     initQuote();
   } else {
     currentUserId = null;
@@ -793,3 +794,201 @@ function renderShortcuts() {
 
 document.getElementById('settingsBtn').addEventListener('click', () => { initSettingsUI(); openModal('settingsModal'); });
 document.getElementById('settingsClose').addEventListener('click', () => closeModal('settingsModal'));
+
+/* ════════════════════════════════════
+   POMODORO
+════════════════════════════════════ */
+const POMO_MODES = [
+  { label: 'FOKUS',       mins: 25, color: 'var(--accent)' },
+  { label: 'KURZE PAUSE', mins:  5, color: '#10b981' },
+  { label: 'LANGE PAUSE', mins: 15, color: '#f59e0b' },
+];
+const POMO_C = 2 * Math.PI * 42;
+
+let pomoMode     = 0;
+let pomoSecs     = 25 * 60;
+let pomoRunning  = false;
+let pomoTimer    = null;
+let pomoSessions = 0;
+
+function updatePomoUI() {
+  const mode   = POMO_MODES[pomoMode];
+  const mins   = String(Math.floor(pomoSecs / 60)).padStart(2, '0');
+  const secs   = String(pomoSecs % 60).padStart(2, '0');
+  const time   = `${mins}:${secs}`;
+  const total  = mode.mins * 60;
+  const offset = ((total - pomoSecs) / total) * POMO_C;
+
+  document.getElementById('pomoTime').textContent         = time;
+  document.getElementById('pomoTriggerLabel').textContent = time;
+  document.getElementById('pomoModeLabel').textContent    = mode.label;
+  document.getElementById('pomoModeLabel').style.color    = mode.color;
+  document.getElementById('pomoToggle').textContent       = pomoRunning ? '⏸' : '▶';
+  document.getElementById('pomoProgress').style.strokeDashoffset = offset;
+  document.getElementById('pomoProgress').style.stroke           = mode.color;
+  document.getElementById('pomoTrigger').classList.toggle('running', pomoRunning);
+
+  document.querySelectorAll('.pomo-dot').forEach((d, i) => d.classList.toggle('done', i < (pomoSessions % 4)));
+  document.title = pomoRunning ? `${time} ${pomoMode === 0 ? '🍅' : '☕'} — Startseite` : 'Startseite';
+}
+
+function pomoBeep(freq) {
+  try {
+    const ctx  = new AudioContext();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
+    osc.start(); osc.stop(ctx.currentTime + 0.9);
+  } catch {}
+}
+
+function pomoAdvance() {
+  if (pomoMode === 0) {
+    pomoSessions++;
+    pomoMode = (pomoSessions % 4 === 0) ? 2 : 1;
+  } else {
+    pomoMode = 0;
+  }
+  pomoSecs = POMO_MODES[pomoMode].mins * 60;
+}
+
+function initPomodoro() {
+  const trigger = document.getElementById('pomoTrigger');
+  const panel   = document.getElementById('pomoPanel');
+
+  trigger.addEventListener('click', () => { panel.classList.toggle('open'); updatePomoUI(); });
+
+  document.getElementById('pomoToggle').addEventListener('click', () => {
+    if (pomoRunning) {
+      clearInterval(pomoTimer); pomoRunning = false;
+    } else {
+      if (Notification.permission === 'default') Notification.requestPermission();
+      pomoRunning = true;
+      pomoTimer = setInterval(() => {
+        pomoSecs--;
+        if (pomoSecs <= 0) {
+          clearInterval(pomoTimer); pomoRunning = false;
+          pomoBeep(pomoMode === 0 ? 523 : 392);
+          if (Notification.permission === 'granted')
+            new Notification(pomoMode === 0 ? '🍅 Fokus beendet! Pause verdient.' : '⏰ Pause vorbei! Weiter gehts.');
+          pomoAdvance();
+        }
+        updatePomoUI();
+      }, 1000);
+    }
+    updatePomoUI();
+  });
+
+  document.getElementById('pomoSkip').addEventListener('click', () => {
+    clearInterval(pomoTimer); pomoRunning = false; pomoAdvance(); updatePomoUI();
+  });
+
+  document.getElementById('pomoClose').addEventListener('click', () => {
+    clearInterval(pomoTimer); pomoRunning = false;
+    pomoMode = 0; pomoSecs = 25 * 60; pomoSessions = 0;
+    panel.classList.remove('open');
+    document.title = 'Startseite';
+    updatePomoUI();
+  });
+
+  updatePomoUI();
+}
+
+/* ════════════════════════════════════
+   TODO
+════════════════════════════════════ */
+let TODOS = [];
+
+function renderTodos() {
+  const list  = document.getElementById('todoList');
+  const count = document.getElementById('todoCount');
+  if (!list) return;
+
+  const open = TODOS.filter(t => !t.done);
+  const done = TODOS.filter(t =>  t.done);
+  if (count) count.textContent = open.length ? `${open.length} offen` : '✓ Alles erledigt';
+
+  list.innerHTML = '';
+  if (!TODOS.length) { list.innerHTML = '<div class="todo-empty">Noch keine Aufgaben.</div>'; return; }
+
+  [...open, ...done].forEach(todo => {
+    const item  = document.createElement('div');
+    item.className = 'todo-item';
+    item.dataset.id = todo.id;
+
+    const check = document.createElement('button');
+    check.className = 'todo-check' + (todo.done ? ' done' : '');
+
+    const text = document.createElement('span');
+    text.className = 'todo-text' + (todo.done ? ' done' : '');
+    text.textContent = todo.text;
+
+    const del = document.createElement('button');
+    del.className = 'todo-del';
+    del.textContent = '×';
+
+    item.append(check, text, del);
+    list.appendChild(item);
+  });
+}
+
+async function loadTodos() {
+  if (!currentUserId) return;
+  TODOS = [];
+  try {
+    const snap = await getDocs(collection(db, 'users', currentUserId, 'todos'));
+    snap.forEach(d => TODOS.push({ id: d.id, ...d.data() }));
+    TODOS.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  } catch (err) { console.error('Todos laden:', err); }
+  renderTodos();
+}
+
+async function addTodo(text) {
+  if (!currentUserId || !text.trim()) return;
+  const data = { text: text.trim(), done: false, createdAt: Date.now() };
+  try {
+    const ref = await addDoc(collection(db, 'users', currentUserId, 'todos'), data);
+    TODOS.push({ id: ref.id, ...data });
+    renderTodos();
+  } catch (err) { console.error('Todo hinzufügen:', err); }
+}
+
+async function toggleTodo(todo) {
+  todo.done = !todo.done;
+  renderTodos();
+  try {
+    await updateDoc(doc(db, 'users', currentUserId, 'todos', todo.id), { done: todo.done });
+  } catch { todo.done = !todo.done; renderTodos(); }
+}
+
+async function deleteTodo(id) {
+  TODOS = TODOS.filter(t => t.id !== id);
+  renderTodos();
+  try {
+    await deleteDoc(doc(db, 'users', currentUserId, 'todos', id));
+  } catch (err) { console.error('Todo löschen:', err); }
+}
+
+function initTodo() {
+  const input  = document.getElementById('todoInput');
+  const addBtn = document.getElementById('todoAddBtn');
+  const list   = document.getElementById('todoList');
+
+  addBtn.addEventListener('click', () => { addTodo(input.value); input.value = ''; });
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { addTodo(input.value); input.value = ''; } });
+
+  list.addEventListener('click', e => {
+    const item = e.target.closest('.todo-item');
+    if (!item) return;
+    const todo = TODOS.find(t => t.id === item.dataset.id);
+    if (!todo) return;
+    if (e.target.closest('.todo-check')) toggleTodo(todo);
+    if (e.target.closest('.todo-del'))   deleteTodo(todo.id);
+  });
+}
+
+initPomodoro();
+initTodo();
