@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Jump — Startseite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-main:       #0d0d0f;
+      --bg-card:       #141417;
+      --accent:        #5e6ad2;
+      --accent-glow:   rgba(94,106,210,0.18);
+      --text-primary:  #f0f0f5;
+      --text-secondary:#6b6b7a;
+      --text-label:    #3a3a48;
+      --border:        rgba(255,255,255,0.06);
+      --font-display:  'Sora', sans-serif;
+      --font-mono:     'DM Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-main);
+      color: var(--text-primary);
+      font-family: var(--font-display);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .back-btn {
+      position: fixed; top: 20px; left: 24px; z-index: 200;
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 40px; padding: 7px 14px 7px 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2); cursor: pointer;
+      color: var(--text-secondary); font-family: var(--font-mono); font-size: 13px;
+      text-decoration: none; transition: border-color 0.2s, color 0.2s;
+    }
+    .back-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+    .back-btn svg { width: 14px; height: 14px; }
+
+    #gameWrap { position: relative; }
+
+    #gameCanvas {
+      display: block;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    /* HUD */
+    #hud {
+      position: absolute; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px; pointer-events: none;
+    }
+    .hud-score { font-family: var(--font-mono); font-size: 22px; font-weight: 500; color: var(--text-primary); }
+    .hud-level { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--accent); text-transform: uppercase; margin-top: 2px; }
+    .hud-coins { font-family: var(--font-mono); font-size: 14px; color: #f59e0b; display: flex; align-items: center; gap: 5px; }
+    .hud-right { display: flex; align-items: center; gap: 10px; }
+
+    .hud-btn {
+      pointer-events: all;
+      background: rgba(20,20,23,0.75); border: 1px solid var(--border);
+      border-radius: 50%; width: 32px; height: 32px;
+      color: var(--text-secondary); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(8px);
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .hud-btn:hover { color: var(--text-primary); border-color: var(--accent); }
+    .hud-btn svg { width: 15px; height: 15px; }
+
+    /* Overlays */
+    .overlay {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(13,13,15,0.88); backdrop-filter: blur(14px);
+      border-radius: 20px; gap: 18px; padding: 32px;
+      animation: fadeIn 0.2s ease;
+    }
+    .overlay.hidden { display: none; }
+
+    .overlay-title  { font-size: 30px; font-weight: 600; }
+    .overlay-sub    { font-size: 14px; font-weight: 300; color: var(--text-secondary); text-align: center; line-height: 1.7; }
+    .overlay-score  { font-family: var(--font-mono); font-size: 56px; font-weight: 400; color: var(--accent); letter-spacing: -3px; line-height: 1; }
+    .overlay-best   { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+    .overlay-coins  { font-family: var(--font-mono); font-size: 16px; color: #f59e0b; }
+
+    .play-btn {
+      padding: 13px 40px; border-radius: 14px; border: none;
+      background: var(--accent); color: #fff;
+      font-family: var(--font-display); font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s, transform 0.15s;
+    }
+    .play-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    .hint-text { font-size: 11px; color: var(--text-label); font-family: var(--font-mono); text-align: center; line-height: 2; }
+
+    /* Shop */
+    .shop-overlay {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      background: rgba(13,13,15,0.96); backdrop-filter: blur(14px);
+      border-radius: 20px; padding: 22px;
+      overflow-y: auto; animation: fadeIn 0.2s ease;
+    }
+    .shop-overlay.hidden { display: none; }
+
+    .shop-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .shop-title  { font-size: 18px; font-weight: 600; }
+    .shop-coins  { font-family: var(--font-mono); font-size: 14px; color: #f59e0b; display: flex; align-items: center; gap: 5px; }
+    .shop-close  { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 20px; line-height: 1; transition: color 0.15s; padding: 4px; }
+    .shop-close:hover { color: var(--text-primary); }
+
+    .shop-sec-title { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-label); font-family: var(--font-mono); margin-bottom: 10px; }
+    .shop-sec { margin-bottom: 20px; }
+
+    .skin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .skin-item {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 10px 6px; border-radius: 14px; border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02); cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .skin-item.active { border-color: var(--accent); background: var(--accent-glow); }
+    .skin-name  { font-size: 10px; color: var(--text-secondary); text-align: center; }
+    .skin-badge { font-family: var(--font-mono); font-size: 10px; }
+    .skin-badge.price { color: #f59e0b; }
+    .skin-badge.owned { color: var(--accent); }
+
+    .pu-list { display: flex; flex-direction: column; gap: 8px; }
+    .pu-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border); background: rgba(255,255,255,0.02); }
+    .pu-icon { font-size: 22px; width: 36px; text-align: center; flex-shrink: 0; }
+    .pu-info { flex: 1; }
+    .pu-name { font-size: 13px; font-weight: 400; }
+    .pu-desc { font-size: 11px; color: var(--text-secondary); margin-top: 2px; line-height: 1.4; }
+    .buy-btn {
+      padding: 7px 12px; border-radius: 10px; border: none;
+      background: var(--accent); color: #fff;
+      font-family: var(--font-mono); font-size: 11px; cursor: pointer;
+      transition: opacity 0.2s; flex-shrink: 0; white-space: nowrap;
+    }
+    .buy-btn:hover:not(:disabled) { opacity: 0.85; }
+    .buy-btn:disabled { opacity: 0.3; cursor: default; }
+
+    /* Level flash */
+    #levelFlash {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-mono); font-size: 18px; letter-spacing: 0.1em;
+      color: var(--accent); text-transform: uppercase; pointer-events: none;
+      opacity: 0; transition: opacity 0.3s; text-shadow: 0 0 20px var(--accent);
+    }
+
+    /* Mobile controls */
+    #mobileControls {
+      display: none; position: absolute; bottom: 18px; left: 0; right: 0;
+      justify-content: space-between; padding: 0 24px; pointer-events: none;
+    }
+    .mob-btn {
+      pointer-events: all; width: 64px; height: 64px; border-radius: 50%;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text-primary); font-size: 22px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      user-select: none; -webkit-user-select: none; transition: background 0.1s;
+    }
+    .mob-btn:active { background: rgba(94,106,210,0.3); }
+
+    @media (pointer: coarse) { #mobileControls { display: flex; } }
+    @media (max-width: 440px) {
+      #gameWrap { width: 100vw; }
+      #gameCanvas { border-radius: 0; border-left: none; border-right: none; }
+      #mobileControls { display: flex; }
+    }
+
+    @keyframes fadeIn { from { opacity:0; transform:scale(0.97); } to { opacity:1; transform:scale(1); } }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #2a2a35; border-radius: 99px; }
+  </style>
+</head>
+<body>
+
+<a href="../index.html" class="back-btn">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <polyline points="15 18 9 12 15 6"/>
+  </svg>
+  Zurück
+</a>
+
+<div id="gameWrap">
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div>
+      <div class="hud-score" id="hudScore">0</div>
+      <div class="hud-level" id="hudLevel">Level 1</div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-coins">🪙 <span id="hudCoins">0</span></div>
+        <svg id="cloudIndicator" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:15px;height:15px;color:var(--text-label);transition:color 0.3s;" title="Nicht angemeldet">
+          <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+        </svg>
+      <button class="hud-btn" id="shopBtn" title="Shop">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 01-8 0"/>
+        </svg>
+      </button>
+      <button class="hud-btn" id="pauseBtn" title="Pause">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="levelFlash">Level Up!</div>
+  <div id="saveToast" style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(20,20,23,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:6px 14px;font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);pointer-events:none;opacity:0;transition:opacity 0.4s;white-space:nowrap;"></div>
+
+  <!-- Mobile controls -->
+  <div id="mobileControls">
+    <button class="mob-btn" id="btnLeft">◀</button>
+    <button class="mob-btn" id="btnRight">▶</button>
+  </div>
+
+  <!-- Start screen -->
+  <div class="overlay" id="startOverlay">
+    <div style="font-size:48px;">🕹️</div>
+    <div class="overlay-title">Jump!</div>
+    <div class="overlay-sub">Spring auf Plattformen nach oben.<br>Sammle Münzen und erreiche neue Level.</div>
+    <div id="startSaveInfo" style="font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);display:flex;gap:16px;">
+      <span>🪙 <span id="startCoins">0</span></span>
+      <span>🏆 <span id="startBest">0</span></span>
+    </div>
+    <button class="play-btn" id="startBtn">Spielen</button>
+    <div class="hint-text">← → oder A / D zum Bewegen<br>Automatisch springen beim Landen<br>ESC zum Pausieren</div>
+  </div>
+
+  <!-- Pause screen -->
+  <div class="overlay hidden" id="pauseOverlay">
+    <div class="overlay-title">Pause</div>
+    <div class="hud-coins" style="font-size:16px;">🪙 <span id="pauseCoins">0</span> gesammelt</div>
+    <button class="play-btn" id="resumeBtn">Weiter</button>
+  </div>
+
+  <!-- Game over screen -->
+  <div class="overlay hidden" id="gameoverOverlay">
+    <div class="overlay-title">Game Over</div>
+    <div class="overlay-score" id="goScore">0</div>
+    <div class="overlay-best" id="goBest">Bestleistung: 0</div>
+    <div class="overlay-coins" id="goCoins">+0 🪙</div>
+    <button class="play-btn" id="restartBtn">Nochmal</button>
+  </div>
+
+  <!-- Shop -->
+  <div class="shop-overlay hidden" id="shopOverlay">
+    <div class="shop-header">
+      <div class="shop-title">Shop</div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="shop-coins">🪙 <span id="shopCoinsDisplay">0</span></div>
+        <button class="shop-close" id="shopClose">✕</button>
+      </div>
+    </div>
+    <div class="shop-sec">
+      <div class="shop-sec-title">Charakter-Skins</div>
+      <div class="skin-grid" id="skinGrid"></div>
+    </div>
+    <div class="shop-sec">
+      <div class="shop-sec-title">Power-Ups (einmalig pro Runde)</div>
+      <div class="pu-list" id="puList"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp }                          from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc }      from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged }            from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+
+// ════════════════════════════════════════════
+// CANVAS SETUP
+// ════════════════════════════════════════════
+const GW = 400, GH = 600;
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
+canvas.width  = GW;
+canvas.height = GH;
+
+const wrap = document.getElementById('gameWrap');
+function resize() {
+  const scale = Math.min(1.5, (window.innerHeight - 80) / GH, (window.innerWidth - 48) / GW);
+  canvas.style.width  = GW * scale + 'px';
+  canvas.style.height = GH * scale + 'px';
+  wrap.style.width    = GW * scale + 'px';
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ════════════════════════════════════════════
+// GAME DATA
+// ════════════════════════════════════════════
+const SKINS = [
+  { id:0, name:'Standard', body:'#5e6ad2', eye:'#ffffff', price:0   },
+  { id:1, name:'Feuer',    body:'#ef4444', eye:'#ffffff', price:80  },
+  { id:2, name:'Natur',    body:'#10b981', eye:'#ffffff', price:80  },
+  { id:3, name:'Gold',     body:'#f59e0b', eye:'#1a0800', price:150 },
+  { id:4, name:'Galaxy',   body:'#8b5cf6', eye:'#ffffff', price:200 },
+  { id:5, name:'Neon',     body:'#ec4899', eye:'#ffffff', price:250 },
+  { id:6, name:'Eis',      body:'#0ea5e9', eye:'#ffffff', price:120 },
+  { id:7, name:'Schatten', body:'#374151', eye:'#9ca3af', price:300 },
+];
+
+const POWERUPS = [
+  { id:'magnet', name:'Münz-Magnet',  icon:'🧲', desc:'Zieht Münzen automatisch an (ganze Runde)',   price:60  },
+  { id:'spring', name:'Supersprung',  icon:'🌀', desc:'+30% Sprunghöhe (ganze Runde)',               price:50  },
+  { id:'shield', name:'Schutzschild', icon:'🛡️', desc:'Überstehe einmal den Tod',                    price:100 },
+  { id:'x2',     name:'Doppelmünzen', icon:'✨', desc:'Alle Münzen zählen doppelt (ganze Runde)',     price:80  },
+];
+
+// ── Firebase ──────────────────────────────────────────
+const fbConfig = {
+  apiKey:    "AIzaSyAVjuGZg8T8eMUHRVFS1K3Qk6cZXI2CSiM",
+  authDomain:"homewebsite-f5702.firebaseapp.com",
+  projectId: "homewebsite-f5702"
+};
+const fbApp = initializeApp(fbConfig);
+const db    = getFirestore(fbApp);
+const auth  = getAuth(fbApp);
+let   currentUser = null;
+
+// ── Save data ─────────────────────────────────────────
+const SAVE_KEY = 'jumpgame_v2';
+let save = { coins:0, best:0, skins:[0], skin:0, powerups:{} };
+
+function loadLocal() {
+  try {
+    const d = JSON.parse(localStorage.getItem(SAVE_KEY));
+    if (d && typeof d === 'object') {
+      save.coins    = Number(d.coins)                      || 0;
+      save.best     = Number(d.best)                       || 0;
+      save.skins    = Array.isArray(d.skins) ? d.skins     : [0];
+      save.skin     = Number(d.skin)                       || 0;
+      save.powerups = (d.powerups && typeof d.powerups === 'object') ? d.powerups : {};
+    }
+  } catch(e) {}
+}
+loadLocal();
+// Show loaded data immediately on start screen (before auth fires)
+setTimeout(() => updateHUD(), 0);
+
+async function loadCloud(uid) {
+  try {
+    const snap = await getDoc(doc(db, 'users', uid, 'game', 'jump'));
+    if (snap.exists()) {
+      const d = snap.data();
+      // Smart merge: never reduce what's already in local storage
+      save.coins    = Math.max(save.coins, Number(d.coins) || 0);
+      save.best     = Math.max(save.best,  Number(d.best)  || 0);
+      save.skins    = [...new Set([...(save.skins || [0]), ...(Array.isArray(d.skins) ? d.skins : [])])];
+      if (d.skin != null) save.skin = d.skin;
+      save.powerups = { ...(d.powerups || {}), ...save.powerups };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+      updateHUD();
+    }
+  } catch(e) { console.warn('Cloud load error:', e); }
+}
+
+let saveToast = null;
+function persist() {
+  // Always write to localStorage first (synchronous, reliable)
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+  } catch(e) { console.error('localStorage error:', e); }
+
+  // Cloud save if logged in
+  if (currentUser) {
+    setDoc(doc(db, 'users', currentUser.uid, 'game', 'jump'), save)
+      .then(() => showSaveToast('☁️ Gespeichert'))
+      .catch(e => { console.warn('Firestore error:', e); showSaveToast('💾 Lokal gespeichert'); });
+  } else {
+    showSaveToast('💾 Lokal gespeichert');
+  }
+}
+
+function showSaveToast(msg) {
+  clearTimeout(saveToast);
+  let t = document.getElementById('saveToast');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.opacity = '1';
+  saveToast = setTimeout(() => { t.style.opacity = '0'; }, 1800);
+}
+
+// ════════════════════════════════════════════
+// GAME STATE
+// ════════════════════════════════════════════
+let gstate = 'start';
+let score = 0, sessionCoins = 0, level = 1, lastLevel = 1;
+let cameraY = 0, highestY = 0;
+let player, platforms, coinObjs, particles;
+let keys = { left: false, right: false };
+let activePU = {};
+let shieldLeft = 0;
+let nextPlatY = 0;
+
+const GRAVITY   = 0.38;
+const BASE_JUMP = -11.8;
+const SPEED     = 5.2;
+const PLAT_H    = 11;
+const COIN_R    = 10;
+
+// ════════════════════════════════════════════
+// LEVEL CONFIG
+// ════════════════════════════════════════════
+function levelCfg() {
+  const l = Math.min(level, 20);
+  return {
+    gapMin:     55 + l * 3.5,
+    gapMax:     115 + l * 5,
+    wMin:       Math.max(52, 96 - l * 2),
+    wMax:       100,
+    movChance:  Math.min(0.04 + l * 0.025, 0.42),
+    fragChance: Math.min(l * 0.018, 0.28),
+    coinChance: 0.58,
+  };
+}
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+function initGame() {
+  score = 0; sessionCoins = 0; level = 1; lastLevel = 1;
+  highestY = 0; cameraY = 0;
+
+  // Consume purchased powerups
+  activePU = {};
+  Object.entries(save.powerups || {}).forEach(([id, qty]) => {
+    if (qty > 0) { activePU[id] = true; save.powerups[id]--; }
+  });
+  persist();
+  shieldLeft = activePU.shield ? 1 : 0;
+
+  const skin = SKINS[save.skin] || SKINS[0];
+  player = { x: GW/2-15, y: GH-200, w:30, h:30, vx:0, vy:0, squish:1, squishV:0, skin, trail:[] };
+
+  platforms = []; coinObjs = []; particles = [];
+  nextPlatY = GH - 60;
+  platforms.push({ x: GW/2-50, y: GH-60, w:100, type:0, broken:false, bt:0, alpha:1 });
+  for (let i = 0; i < 15; i++) genPlatform();
+  updateHUD();
+}
+
+function genPlatform() {
+  const c = levelCfg();
+  const gap = c.gapMin + Math.random() * (c.gapMax - c.gapMin);
+  nextPlatY -= gap;
+  const w = c.wMin + Math.random() * (c.wMax - c.wMin);
+  const x = Math.random() * (GW - w);
+  const rnd = Math.random();
+  const type = rnd < c.fragChance ? 2 : rnd < c.fragChance + c.movChance ? 1 : 0;
+  const p = { x, y: nextPlatY, w, type, broken: false, bt: 0, alpha: 1 };
+  if (type === 1) { p.dir = Math.random() < 0.5 ? 1 : -1; p.spd = 1.2 + Math.random() * 1.3; }
+  platforms.push(p);
+  if (Math.random() < c.coinChance) {
+    // Place coin halfway between this platform and the previous one so it sits in the jump arc
+    const coinY = nextPlatY - gap / 2;
+    const coinX = x + w / 2 + (Math.random() - 0.5) * (w * 0.4);
+    coinObjs.push({ x: coinX, y: coinY, r: COIN_R, collected: false, anim: Math.random() * Math.PI * 2 });
+  }
+}
+
+// ════════════════════════════════════════════
+// UPDATE
+// ════════════════════════════════════════════
+function update() {
+  if (gstate !== 'playing') return;
+
+  player.vx = keys.left ? -SPEED : keys.right ? SPEED : 0;
+  const jumpF = activePU.spring ? BASE_JUMP * 1.3 : BASE_JUMP;
+  player.vy += GRAVITY;
+  player.x  += player.vx;
+  player.y  += player.vy;
+
+  // Wrap horizontally
+  if (player.x + player.w < 0) player.x = GW;
+  if (player.x > GW)           player.x = -player.w;
+
+  // Squish spring animation
+  player.squish  += player.squishV;
+  player.squishV += (1 - player.squish) * 0.28;
+  player.squishV *= 0.65;
+
+  // Trail (when powerups active)
+  if (activePU.spring || shieldLeft > 0) {
+    player.trail.push({ x: player.x + player.w/2, y: player.y + player.h/2, life: 1 });
+  }
+  player.trail.forEach(t => t.life -= 0.1);
+  player.trail = player.trail.filter(t => t.life > 0);
+
+  // Camera follow (upward only)
+  const screenY = player.y - cameraY;
+  if (screenY < GH * 0.38) cameraY = player.y - GH * 0.38;
+
+  // Score & level from height
+  const h = -cameraY;
+  if (h > highestY) {
+    highestY = h;
+    score    = Math.max(0, Math.floor(highestY / 5));
+    level    = 1 + Math.floor(score / 800);
+    if (level > lastLevel) { showLevelFlash(level); lastLevel = level; }
+    updateHUD();
+  }
+
+  // Platform collision (only when falling down) — all in world coordinates
+  if (player.vy >= 0) {
+    for (const p of platforms) {
+      if (p.broken) continue;
+      if (player.x + player.w > p.x &&
+          player.x < p.x + p.w &&
+          player.y + player.h >= p.y &&
+          player.y + player.h <= p.y + PLAT_H + player.vy + 2) {
+        player.y       = p.y - player.h;
+        player.vy      = jumpF;
+        player.squishV = -0.32;
+        spawnParticles(player.x + player.w/2, p.y, p.type===2?'#ef4444':p.type===1?'#f59e0b':player.skin.body, 6);
+        if (p.type === 2) p.bt = 22;
+        break;
+      }
+    }
+  }
+
+  // Update platforms (moving + fragile)
+  platforms.forEach(p => {
+    if (p.type === 1) { p.x += p.dir * p.spd; if (p.x <= 0 || p.x + p.w >= GW) p.dir *= -1; }
+    if (p.bt > 0) { p.bt--; p.alpha = p.bt / 22; if (p.bt <= 0) p.broken = true; }
+  });
+
+  // Grow level map upward as needed
+  while (nextPlatY > cameraY - 80) genPlatform();
+
+  // Prune off-screen
+  platforms = platforms.filter(p => p.y - cameraY < GH + 60);
+  coinObjs  = coinObjs.filter(c => c.y - cameraY < GH + 60);
+
+  // Coin collection
+  const mult = activePU.x2 ? 2 : 1;
+  coinObjs.forEach(c => {
+    if (c.collected) return;
+    c.anim += 0.055;
+    const pcx = player.x + player.w / 2;
+    const pcy = player.y + player.h / 2;
+    const dx  = c.x - pcx;
+    const dy  = c.y - pcy;
+    if (activePU.magnet && Math.sqrt(dx*dx + dy*dy) < 140) {
+      c.x -= dx * 0.09; c.y -= dy * 0.09;
+    }
+    // Generous AABB + coin radius — much easier to pick up
+    if (Math.abs(dx) < player.w / 2 + c.r && Math.abs(dy) < player.h / 2 + c.r) {
+      c.collected = true;
+      sessionCoins += mult;
+      spawnParticles(c.x, c.y, '#f59e0b', 8);
+      updateHUD();
+    }
+  });
+
+  // Particles
+  particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.1; p.life -= 0.04; p.r *= 0.95; });
+  particles = particles.filter(p => p.life > 0);
+
+  // Death check
+  if (player.y - cameraY > GH + 120) {
+    if (shieldLeft > 0) {
+      shieldLeft = 0;
+      const safe = platforms.filter(p => !p.broken && p.y - cameraY < GH * 0.55);
+      if (safe.length) {
+        const top = safe.reduce((a, b) => a.y < b.y ? a : b);
+        player.y  = top.y - cameraY - player.h;
+        player.vy = jumpF;
+        player.x  = top.x + top.w/2 - player.w/2;
+      }
+      spawnParticles(player.x + player.w/2, player.y + cameraY, '#60a5fa', 24);
+    } else {
+      endGame();
+    }
+  }
+}
+
+function endGame() {
+  gstate = 'dead';
+  save.coins += sessionCoins;
+  if (score > save.best) save.best = score;
+  persist();
+  document.getElementById('goScore').textContent = score;
+  document.getElementById('goBest').textContent  = 'Bestleistung: ' + save.best;
+  document.getElementById('goCoins').textContent = '+' + sessionCoins + ' 🪙  (Gesamt: ' + save.coins + ')';
+  document.getElementById('gameoverOverlay').classList.remove('hidden');
+}
+
+// ════════════════════════════════════════════
+// DRAW
+// ════════════════════════════════════════════
+function draw() {
+  ctx.clearRect(0, 0, GW, GH);
+  ctx.fillStyle = '#0d0d0f';
+  ctx.fillRect(0, 0, GW, GH);
+
+  // Stars (parallax)
+  const seed = Math.floor(cameraY / 300);
+  for (let i = 0; i < 50; i++) {
+    const sx = prand(seed * 200 + i) * GW;
+    const sy = ((prand(seed * 200 + i + 1) * GH * 4 - cameraY * 0.12) % GH + GH) % GH;
+    ctx.globalAlpha = 0.07 + prand(seed * 200 + i + 2) * 0.28;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(sx, sy, 0.8 + prand(seed * 200 + i + 3) * 1.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  if (gstate === 'start') return;
+
+  // Platforms
+  const platStyle = [
+    { fill: '#141428', stroke: '#5e6ad2' },
+    { fill: '#181408', stroke: '#f59e0b' },
+    { fill: '#200808', stroke: '#ef4444' },
+  ];
+  platforms.forEach(p => {
+    const py = p.y - cameraY;
+    if (py < -20 || py > GH + 20) return;
+    const s = platStyle[p.type];
+    ctx.save();
+    ctx.globalAlpha  = p.alpha;
+    ctx.shadowColor  = s.stroke; ctx.shadowBlur = 10;
+    ctx.fillStyle    = s.fill;
+    roundRect(p.x, py, p.w, PLAT_H, 5); ctx.fill();
+    ctx.strokeStyle  = s.stroke; ctx.lineWidth = 1.5;
+    roundRect(p.x, py, p.w, PLAT_H, 5); ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  });
+
+  // Coins
+  coinObjs.forEach(c => {
+    if (c.collected) return;
+    const cy = c.y - cameraY + Math.sin(c.anim) * 3;
+    if (cy < -20 || cy > GH + 20) return;
+    ctx.save();
+    ctx.shadowColor = '#f59e0b'; ctx.shadowBlur = 12;
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath(); ctx.arc(c.x, cy, COIN_R, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fde68a';
+    ctx.beginPath(); ctx.arc(c.x - 1.5, cy - 1.5, COIN_R * 0.45, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  });
+
+  // Particles
+  particles.forEach(p => {
+    ctx.save(); ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.arc(p.x, p.y - cameraY, p.r, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  });
+
+  // Player trail
+  player.trail.forEach(t => {
+    ctx.save(); ctx.globalAlpha = t.life * 0.25;
+    ctx.fillStyle = player.skin.body;
+    ctx.beginPath(); ctx.arc(t.x, t.y - cameraY, player.w / 2 * t.life * 0.8, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  });
+
+  // Shield ring
+  if (shieldLeft > 0) {
+    ctx.save();
+    ctx.globalAlpha = 0.35 + Math.sin(Date.now() * 0.006) * 0.2;
+    ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 2;
+    ctx.shadowColor = '#60a5fa'; ctx.shadowBlur = 14;
+    ctx.beginPath();
+    ctx.arc(player.x + player.w/2, player.y - cameraY + player.h/2, player.w * 0.95, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  drawPlayer();
+}
+
+function drawPlayer() {
+  const sk = player.skin;
+  const sq = player.squish;
+  const cx = player.x + player.w / 2;
+  const cy = player.y - cameraY + player.h / 2;
+  const hw = player.w / 2 * (2 - sq);
+  const hh = player.h / 2 * sq;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.shadowColor = sk.body; ctx.shadowBlur = 16;
+  ctx.fillStyle = sk.body;
+  roundRect(-hw, -hh, hw * 2, hh * 2, 8); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Eyes
+  const ex = hw * 0.32, ey = -hh * 0.1;
+  ctx.fillStyle = sk.eye;
+  ctx.beginPath(); ctx.arc(-ex, ey, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc( ex, ey, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#00000099';
+  ctx.beginPath(); ctx.arc(-ex + 1, ey + 1, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc( ex + 1, ey + 1, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+// ════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function prand(s) { const v = Math.sin(s) * 10000; return v - Math.floor(v); }
+
+function spawnParticles(x, y, color, n) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.PI * 2 * i / n + Math.random() * 0.5;
+    const spd = 1.5 + Math.random() * 2.5;
+    particles.push({ x, y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd - 1.2, life: 1, color, r: 2.5 + Math.random() * 2 });
+  }
+}
+
+function updateHUD() {
+  const total = save.coins + sessionCoins;
+  document.getElementById('hudScore').textContent    = score;
+  document.getElementById('hudLevel').textContent    = 'Level ' + level;
+  document.getElementById('hudCoins').textContent    = total;
+  document.getElementById('pauseCoins').textContent  = total;
+  document.getElementById('shopCoinsDisplay').textContent = total;
+  const sc = document.getElementById('startCoins');
+  const sb = document.getElementById('startBest');
+  if (sc) sc.textContent = save.coins;
+  if (sb) sb.textContent = save.best;
+}
+
+let flashTimer = null;
+function showLevelFlash(l) {
+  const el = document.getElementById('levelFlash');
+  el.textContent = 'Level ' + l + '!';
+  el.style.opacity = '1';
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => { el.style.opacity = '0'; }, 1400);
+}
+
+// ════════════════════════════════════════════
+// INPUT
+// ════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft'  || e.key === 'a') keys.left  = true;
+  if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
+  if ((e.key === 'Escape' || e.key === 'p') && (gstate === 'playing' || gstate === 'paused')) togglePause();
+});
+document.addEventListener('keyup', e => {
+  if (e.key === 'ArrowLeft'  || e.key === 'a') keys.left  = false;
+  if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
+});
+
+const btnL = document.getElementById('btnLeft');
+const btnR = document.getElementById('btnRight');
+['pointerdown'].forEach(ev => { btnL.addEventListener(ev, () => keys.left = true); btnR.addEventListener(ev, () => keys.right = true); });
+['pointerup','pointerleave','pointercancel'].forEach(ev => { btnL.addEventListener(ev, () => keys.left = false); btnR.addEventListener(ev, () => keys.right = false); });
+
+// ════════════════════════════════════════════
+// UI BUTTONS
+// ════════════════════════════════════════════
+document.getElementById('startBtn').addEventListener('click', () => {
+  document.getElementById('startOverlay').classList.add('hidden');
+  initGame(); gstate = 'playing';
+});
+document.getElementById('restartBtn').addEventListener('click', () => {
+  document.getElementById('gameoverOverlay').classList.add('hidden');
+  initGame(); gstate = 'playing';
+});
+document.getElementById('pauseBtn').addEventListener('click', togglePause);
+document.getElementById('resumeBtn').addEventListener('click', togglePause);
+
+function togglePause() {
+  if (gstate === 'playing') {
+    gstate = 'paused';
+    document.getElementById('pauseOverlay').classList.remove('hidden');
+  } else if (gstate === 'paused') {
+    gstate = 'playing';
+    document.getElementById('pauseOverlay').classList.add('hidden');
+  }
+}
+
+document.getElementById('shopBtn').addEventListener('click', openShop);
+document.getElementById('shopClose').addEventListener('click', closeShop);
+function openShop()  { renderShop(); document.getElementById('shopOverlay').classList.remove('hidden'); }
+function closeShop() { document.getElementById('shopOverlay').classList.add('hidden'); }
+
+// ════════════════════════════════════════════
+// SHOP
+// ════════════════════════════════════════════
+function deductCoins(amount) {
+  let cost = amount;
+  if (save.coins >= cost) { save.coins -= cost; return true; }
+  cost -= save.coins; save.coins = 0;
+  if (sessionCoins >= cost) { sessionCoins -= cost; return true; }
+  return false;
+}
+
+function renderShop() {
+  const total = save.coins + sessionCoins;
+  document.getElementById('shopCoinsDisplay').textContent = total;
+
+  // ── Skins ──
+  const grid = document.getElementById('skinGrid');
+  grid.innerHTML = '';
+  SKINS.forEach(sk => {
+    const owned  = save.skins.includes(sk.id);
+    const active = save.skin === sk.id;
+
+    const div = document.createElement('div');
+    div.className = 'skin-item' + (active ? ' active' : '');
+
+    // Preview canvas
+    const cv = document.createElement('canvas');
+    cv.width = 36; cv.height = 36;
+    const c2 = cv.getContext('2d');
+    c2.fillStyle = sk.body; c2.shadowColor = sk.body; c2.shadowBlur = 6;
+    c2.beginPath(); c2.roundRect(3, 3, 30, 30, 8); c2.fill();
+    c2.shadowBlur = 0; c2.fillStyle = sk.eye;
+    c2.beginPath(); c2.arc(13, 16, 4, 0, Math.PI*2); c2.fill();
+    c2.beginPath(); c2.arc(23, 16, 4, 0, Math.PI*2); c2.fill();
+    c2.fillStyle = '#00000099';
+    c2.beginPath(); c2.arc(14, 17, 2, 0, Math.PI*2); c2.fill();
+    c2.beginPath(); c2.arc(24, 17, 2, 0, Math.PI*2); c2.fill();
+
+    const nm = document.createElement('div'); nm.className = 'skin-name'; nm.textContent = sk.name;
+    const bd = document.createElement('div'); bd.className = 'skin-badge';
+
+    if (owned) {
+      bd.classList.add('owned'); bd.textContent = active ? '✓ Aktiv' : 'Ausrüsten';
+      if (!active) div.addEventListener('click', () => {
+        save.skin = sk.id; persist();
+        if (player) player.skin = sk;
+        renderShop();
+      });
+    } else {
+      bd.classList.add('price'); bd.textContent = '🪙 ' + sk.price;
+      const canAfford = total >= sk.price;
+      if (!canAfford) div.style.opacity = '0.45';
+      div.addEventListener('click', () => {
+        if (save.skins.includes(sk.id)) return;
+        const t = save.coins + sessionCoins;
+        if (t < sk.price) return;
+        if (!deductCoins(sk.price)) return;
+        save.skins.push(sk.id); save.skin = sk.id;
+        if (player) player.skin = sk;
+        persist(); renderShop(); updateHUD();
+      });
+    }
+
+    div.appendChild(cv); div.appendChild(nm); div.appendChild(bd);
+    grid.appendChild(div);
+  });
+
+  // ── Power-Ups ──
+  const pl = document.getElementById('puList');
+  pl.innerHTML = '';
+  POWERUPS.forEach(pu => {
+    const qty   = (save.powerups || {})[pu.id] || 0;
+    const total2 = save.coins + sessionCoins;
+
+    const div = document.createElement('div'); div.className = 'pu-item';
+    div.innerHTML = `
+      <div class="pu-icon">${pu.icon}</div>
+      <div class="pu-info">
+        <div class="pu-name">${pu.name}${qty > 0 ? ` <span style="color:var(--accent);font-size:11px;font-family:var(--font-mono);">(${qty}x)</span>` : ''}</div>
+        <div class="pu-desc">${pu.desc}</div>
+      </div>`;
+    const btn = document.createElement('button');
+    btn.className = 'buy-btn';
+    btn.textContent = '🪙 ' + pu.price;
+    btn.disabled = total2 < pu.price;
+    btn.addEventListener('click', () => {
+      if (save.coins + sessionCoins < pu.price) return;
+      if (!deductCoins(pu.price)) return;
+      if (!save.powerups) save.powerups = {};
+      save.powerups[pu.id] = (save.powerups[pu.id] || 0) + 1;
+      persist(); renderShop(); updateHUD();
+    });
+    div.appendChild(btn);
+    pl.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════════
+// CLOUD SYNC
+// ════════════════════════════════════════════
+// Save on page close / refresh — critical fallback
+window.addEventListener('beforeunload', persist);
+
+onAuthStateChanged(auth, async user => {
+  currentUser = user;
+  const indicator = document.getElementById('cloudIndicator');
+  if (user) {
+    await loadCloud(user.uid);
+    if (indicator) { indicator.title = 'Cloud-Speicher aktiv (' + user.email + ')'; indicator.style.color = '#10b981'; }
+  } else {
+    if (indicator) { indicator.title = 'Nicht angemeldet — nur lokal gespeichert'; indicator.style.color = 'var(--text-label)'; }
+  }
+});
+
+// ════════════════════════════════════════════
+// GAME LOOP
+// ════════════════════════════════════════════
+let frameCount = 0;
+function loop() {
+  update();
+  draw();
+  // Auto-save every ~30s (1800 frames at 60fps)
+  if (gstate === 'playing' && ++frameCount % 1800 === 0) persist();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
