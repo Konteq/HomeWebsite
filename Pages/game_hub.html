@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Games Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-main:  #0d0d0f;
+      --bg-card:  #141417;
+      --accent:   #38bdf8;
+      --accent-2: #fb7185;
+      --text-primary:   #f0f0f5;
+      --text-secondary: #8a8a98;
+      --text-muted:     #4b4b57;
+      --border: rgba(255,255,255,0.08);
+      --font-display: 'Sora', sans-serif;
+      --font-mono:    'DM Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      font-family: var(--font-display);
+      padding: 0 24px 80px;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 0;
+      max-width: 900px;
+      margin: 0 auto 52px;
+      border-bottom: 1px solid var(--border);
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(20,20,23,0.86);
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 7px 14px 7px 10px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .back-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+    .back-btn svg { width: 14px; height: 14px; }
+    nav h1 {
+      font-size: 22px; font-weight: 600;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 900px;
+      margin: 0 auto 56px;
+    }
+    .game-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      display: flex; flex-direction: column; gap: 14px;
+      text-decoration: none; color: inherit;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+    .game-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(56,189,248,0.1);
+    }
+    .game-card .icon { font-size: 52px; line-height: 1; }
+    .game-card h2 { font-size: 22px; font-weight: 600; }
+    .game-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.65; flex: 1; }
+    .card-best {
+      font-family: var(--font-mono); font-size: 11px;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em;
+      min-height: 16px;
+    }
+    .play-btn {
+      display: flex; align-items: center; justify-content: center;
+      padding: 12px 28px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent) 0%, #0284c7 100%);
+      color: #071013; font-family: var(--font-display); font-size: 14px; font-weight: 600;
+      text-decoration: none;
+      box-shadow: 0 6px 20px rgba(56,189,248,0.22);
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .play-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .play-btn.drift {
+      background: linear-gradient(135deg, var(--accent-2) 0%, #be185d 100%);
+      box-shadow: 0 6px 20px rgba(251,113,133,0.22);
+    }
+
+    .section-head {
+      max-width: 900px; margin: 0 auto 24px;
+      font-size: 17px; font-weight: 600;
+    }
+    .boards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 900px; margin: 0 auto;
+    }
+    .board {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 24px;
+    }
+    .board-title {
+      font-family: var(--font-mono); font-size: 11px;
+      text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--text-muted); margin-bottom: 20px;
+    }
+    .board-row {
+      display: flex; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px;
+    }
+    .board-row:last-child { border-bottom: none; }
+    .board-rank { font-family: var(--font-mono); font-size: 13px; color: var(--text-muted); width: 30px; flex-shrink: 0; }
+    .board-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px; }
+    .board-score { font-family: var(--font-mono); font-size: 14px; color: var(--accent); font-weight: 500; }
+    .board-empty { color: var(--text-muted); font-size: 13px; text-align: center; padding: 28px 0; }
+    .board-loading { display: flex; align-items: center; justify-content: center; padding: 28px 0; }
+    .spinner { width: 22px; height: 22px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .m0 { color: #ffd700; } .m1 { color: #c0c0c0; } .m2 { color: #cd7f32; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="back-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Zurück
+    </a>
+    <h1>🎮 Games</h1>
+  </nav>
+
+  <div class="games-grid">
+    <a href="./game_jump.html" class="game-card">
+      <div class="icon">🦘</div>
+      <h2>Jump</h2>
+      <p>Endloser Plattformer – springe so hoch wie möglich, sammle Münzen und kaufe Skins im Shop.</p>
+      <div class="card-best" id="jumpBest">Lade Bestleistung…</div>
+      <div class="play-btn">Spielen</div>
+    </a>
+    <a href="./game_drift.html" class="game-card">
+      <div class="icon">🏎️</div>
+      <h2>Drift</h2>
+      <p>3D Driftrennen – wähle dein Auto (Porsche, GT-R, WRX STI…), fahre Strecken oder Open World.</p>
+      <div class="card-best" id="driftBest">Lade Bestleistung…</div>
+      <div class="play-btn drift">Spielen</div>
+    </a>
+  </div>
+
+  <div class="section-head">🏆 Globale Highscores</div>
+
+  <div class="boards-grid">
+    <div class="board">
+      <div class="board-title">Jump — Top 10</div>
+      <div id="jumpBoard"><div class="board-loading"><div class="spinner"></div></div></div>
+    </div>
+    <div class="board">
+      <div class="board-title">Drift — Top 10</div>
+      <div id="driftBoard"><div class="board-loading"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp }                                              from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy, limit }  from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getAuth, signInAnonymously }                                from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+
+    const app = initializeApp({
+      apiKey:    "AIzaSyAVjuGZg8T8eMUHRVFS1K3Qk6cZXI2CSiM",
+      authDomain:"homewebsite-f5702.firebaseapp.com",
+      projectId: "homewebsite-f5702"
+    });
+    const db = getFirestore(app);
+    const medals = ['🥇','🥈','🥉'];
+
+    async function loadBoard(game, boardId) {
+      const el = document.getElementById(boardId);
+      try {
+        const q = query(collection(db, `scores_${game}`), orderBy('score','desc'), limit(10));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+          el.innerHTML = '<div class="board-empty">Noch keine Scores – sei der Erste!</div>';
+          return;
+        }
+        el.innerHTML = snap.docs.map((d, i) => {
+          const { name, score } = d.data();
+          const rank = i < 3
+            ? `<span class="board-rank m${i}">${medals[i]}</span>`
+            : `<span class="board-rank">${i+1}.</span>`;
+          return `<div class="board-row">${rank}<span class="board-name">${name || 'Anonym'}</span><span class="board-score">${Math.floor(score).toLocaleString('de-DE')}</span></div>`;
+        }).join('');
+      } catch(e) {
+        el.innerHTML = '<div class="board-empty">Konnte nicht laden.</div>';
+        console.error('loadBoard error', e);
+      }
+    }
+
+    async function loadBest(game, elId) {
+      try {
+        const q = query(collection(db, `scores_${game}`), orderBy('score','desc'), limit(1));
+        const snap = await getDocs(q);
+        const el = document.getElementById(elId);
+        if (!snap.empty) {
+          const { name, score } = snap.docs[0].data();
+          el.textContent = `Rekord: ${Math.floor(score).toLocaleString('de-DE')} von ${name || 'Anonym'}`;
+        } else {
+          el.textContent = 'Noch kein Score – sei der Erste!';
+        }
+      } catch(e) { console.error('loadBest error', e); }
+    }
+
+    // Sign in anonymously so Firestore rules (auth != null) pass, then load
+    signInAnonymously(getAuth(app)).catch(() => {}).finally(() => {
+      loadBoard('jump',  'jumpBoard');
+      loadBoard('drift', 'driftBoard');
+      loadBest('jump',   'jumpBest');
+      loadBest('drift',  'driftBest');
+    });
+  </script>
+</body>
+</html>

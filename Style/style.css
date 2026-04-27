@@ -737,16 +737,19 @@ body {
 }
 .todo-add-btn:hover { opacity: 0.85; }
 
-/* ── GAME BUTTON ── */
-.game-btn {
-  position: fixed; bottom: 32px; left: 32px; z-index: 100;
-  width: 52px; height: 52px; border-radius: 50%;
-  border: 1px solid var(--border-hover); background: var(--bg-card);
-  color: var(--accent); cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
-  text-decoration: none;
-  transition: transform 0.2s, background 0.2s, color 0.2s;
+/* ── GAME LAUNCHERS ── */
+.game-launchers {
+  position: fixed; bottom: 32px; left: 24px; z-index: 100;
+  display: flex; flex-direction: column; gap: 8px;
 }
-.game-btn svg { width: 22px; height: 22px; }
-.game-btn:hover { transform: scale(1.1); background: var(--accent); color: #fff; box-shadow: 0 6px 30px var(--accent-glow); }
+
+.game-launch-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 40px; padding: 6px 14px 6px 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  color: var(--text-secondary); font-family: var(--font-mono); font-size: 13px;
+  text-decoration: none; transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.game-launch-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+.game-launch-btn:hover { border-color: var(--accent); color: var(--text-primary); box-shadow: 0 4px 20px var(--accent-glow); }
