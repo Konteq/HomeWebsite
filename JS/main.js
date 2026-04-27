@@ -1,20 +1,18 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, GoogleAuthProvider, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-const firebaseConfig = {
-  apiKey: "AIzaSyAVjuGZg8T8eMUHRVFS1K3Qk6cZXI2CSiM",
-  authDomain: "homewebsite-f5702.firebaseapp.com",
-  projectId: "homewebsite-f5702"
-};
+/* ════════════════════════════════════
+   STORAGE HELPERS
+════════════════════════════════════ */
+const NAME_KEY  = 'hwUserName';
+const APPS_KEY  = 'hwApps';
+const TODOS_KEY = 'hwTodos';
 
-const firebaseApp = initializeApp(firebaseConfig);
-
-const db       = getFirestore(firebaseApp);
-const auth     = getAuth(firebaseApp);
-const provider = new GoogleAuthProvider();
+function genId() { return Math.random().toString(36).slice(2, 11) + Date.now().toString(36); }
+function saveApps()  { localStorage.setItem(APPS_KEY,  JSON.stringify(window.APPS)); }
+function saveTodos() { localStorage.setItem(TODOS_KEY, JSON.stringify(TODOS)); }
+function loadAppsFromStorage()  { try { return JSON.parse(localStorage.getItem(APPS_KEY))  || []; } catch { return []; } }
+function loadTodosFromStorage() { try { return JSON.parse(localStorage.getItem(TODOS_KEY)) || []; } catch { return []; } }
 
 window.APPS = [];
-let currentUserId = null;
+let TODOS = [];
 
 /* ════════════════════════════════════
    AUTO-EMOJI
@@ -349,10 +347,9 @@ function createIconElement(app) {
 /* ════════════════════════════════════
    KLICK-ZÄHLER
 ════════════════════════════════════ */
-async function incrementClick(app) {
-  if (!currentUserId || !app.docId) return;
+function incrementClick(app) {
   app.clicks = (app.clicks || 0) + 1;
-  try { await updateDoc(doc(db, "users", currentUserId, "apps", app.docId), { clicks: app.clicks }); } catch {}
+  saveApps();
 }
 
 /* ════════════════════════════════════
@@ -467,7 +464,7 @@ function initDragDrop() {
       else parent.insertBefore(dragSrc, w);
       const srcI = APPS.findIndex(a => a.docId === dragSrc.dataset.docId);
       const tgtI = APPS.findIndex(a => a.docId === w.dataset.docId);
-      if (srcI !== -1 && tgtI !== -1) { const [moved] = APPS.splice(srcI, 1); APPS.splice(tgtI, 0, moved); }
+      if (srcI !== -1 && tgtI !== -1) { const [moved] = APPS.splice(srcI, 1); APPS.splice(tgtI, 0, moved); saveApps(); }
     });
   });
 }
@@ -475,10 +472,10 @@ function initDragDrop() {
 /* ════════════════════════════════════
    LÖSCHEN
 ════════════════════════════════════ */
-async function deleteApp(docId) {
-  if (!currentUserId || !docId) return;
-  try { await deleteDoc(doc(db, "users", currentUserId, "apps", docId)); window.APPS = APPS.filter(a => a.docId !== docId); buildGrid(); }
-  catch (err) { console.error("Löschen fehlgeschlagen:", err); }
+function deleteApp(docId) {
+  window.APPS = APPS.filter(a => a.docId !== docId);
+  saveApps();
+  buildGrid();
 }
 
 /* ════════════════════════════════════
@@ -494,7 +491,7 @@ function openEditModal(app) {
   openModal('editModal');
 }
 
-document.getElementById('editForm').addEventListener('submit', async function(e) {
+document.getElementById('editForm').addEventListener('submit', function(e) {
   e.preventDefault();
   const docId    = document.getElementById('editDocId').value;
   const name     = document.getElementById('editName').value.trim();
@@ -503,145 +500,67 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
   const category = document.getElementById('editCategory').value.trim();
   const emoji    = document.getElementById('editEmoji').value.trim();
   const updates  = { name, url: url.startsWith('http') ? url : `https://${url}`, sub: sub||'', category: category||'', icon: emoji||'', iconType: emoji ? 'emoji' : 'favicon' };
-  try {
-    await updateDoc(doc(db, "users", currentUserId, "apps", docId), updates);
-    const idx = APPS.findIndex(a => a.docId === docId);
-    if (idx !== -1) APPS[idx] = { ...APPS[idx], ...updates };
-    buildGrid(); closeModal('editModal');
-  } catch (err) { console.error("Bearbeiten fehlgeschlagen:", err); }
+  const idx = APPS.findIndex(a => a.docId === docId);
+  if (idx !== -1) { APPS[idx] = { ...APPS[idx], ...updates }; saveApps(); }
+  buildGrid(); closeModal('editModal');
 });
 document.getElementById('editClose').addEventListener('click', () => closeModal('editModal'));
 
 /* ════════════════════════════════════
-   FIREBASE LADEN
+   AUTH — NAME ONLY
 ════════════════════════════════════ */
-async function loadAppsFromFirebase() {
-  if (!currentUserId) return;
-  window.APPS = [];
-  try {
-    const snapshot = await getDocs(collection(db, "users", currentUserId, "apps"));
-    snapshot.forEach(d => APPS.push({ ...d.data(), docId: d.id }));
-  } catch (err) { console.error("Firebase Ladefehler:", err); }
+const loginScreen = document.getElementById('loginScreen');
+const appEl       = document.getElementById('app');
+
+function showApp(name) {
+  loginScreen.style.display = 'none';
+  appEl.style.display = 'flex';
+  document.getElementById('userName').textContent = name;
+  document.getElementById('userChip').style.display = 'flex';
+  setGreeting();
+  applySettings(loadSettings());
+  initSettingsUI();
+  initEmojiPicker();
+  initAutoEmoji();
+  window.APPS = loadAppsFromStorage();
   buildGrid();
+  TODOS = loadTodosFromStorage();
+  renderTodos();
+  initQuote();
 }
 
-/* ════════════════════════════════════
-   AUTH
-════════════════════════════════════ */
-onAuthStateChanged(auth, async user => {
-  const loginScreen = document.getElementById('loginScreen');
-  const appEl       = document.getElementById('app');
-  const userChip    = document.getElementById('userChip');
-
-  if (user) {
-    currentUserId = user.uid;
-    loginScreen.style.display = 'none';
-    appEl.style.display = 'flex';
-    if (user.photoURL) document.getElementById('userAvatar').src = user.photoURL;
-    if (user.displayName) document.getElementById('userName').textContent = user.displayName.split(' ')[0];
-    userChip.style.display = 'flex';
-    setGreeting();
-    applySettings(loadSettings());
-    initSettingsUI();
-    initEmojiPicker();
-    initAutoEmoji();
-    await loadAppsFromFirebase();
-    await loadTodos();
-    initQuote();
-  } else {
-    currentUserId = null;
-    window.APPS = [];
-    loginScreen.style.display = 'flex';
-    appEl.style.display = 'none';
-    if (userChip) userChip.style.display = 'none';
-  }
-});
-
-function showLoginError(msg) {
-  const el = document.getElementById('loginError');
-  if (el) { el.textContent = msg; el.style.display = 'block'; }
+function showLogin() {
+  loginScreen.style.display = 'flex';
+  appEl.style.display = 'none';
+  document.getElementById('userChip').style.display = 'none';
+  window.APPS = [];
+  TODOS = [];
+  const inp = document.getElementById('nameInput');
+  if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 100); }
 }
 
-getRedirectResult(auth).catch(err => {
-  console.error('Redirect-Fehler:', err);
-  showLoginError('Google-Login fehlgeschlagen: ' + (err.message || err.code));
+const savedName = localStorage.getItem(NAME_KEY);
+if (savedName) {
+  showApp(savedName);
+} else {
+  showLogin();
+}
+
+document.getElementById('nameSubmitBtn').addEventListener('click', () => {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) return;
+  localStorage.setItem(NAME_KEY, name);
+  showApp(name);
 });
 
-document.getElementById('loginBtn').addEventListener('click', async () => {
-  document.getElementById('loginError').style.display = 'none';
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (popupErr) {
-    if (popupErr.code === 'auth/popup-blocked' || popupErr.code === 'auth/popup-closed-by-user') {
-      try {
-        await signInWithRedirect(auth, provider);
-      } catch (redirectErr) {
-        showLoginError('Google-Login fehlgeschlagen: ' + (redirectErr.message || redirectErr.code));
-      }
-    } else if (popupErr.code !== 'auth/cancelled-popup-request') {
-      showLoginError('Google-Login fehlgeschlagen: ' + (popupErr.message || popupErr.code));
-    }
-  }
+document.getElementById('nameInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('nameSubmitBtn').click();
 });
-document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth).catch(console.error));
 
-/* ════════════════════════════════════
-   EMAIL AUTH
-════════════════════════════════════ */
-(function initEmailAuth() {
-  const emailInput    = document.getElementById('emailInput');
-  const passwordInput = document.getElementById('passwordInput');
-  const submitBtn     = document.getElementById('emailSubmitBtn');
-  const toggleLink    = document.getElementById('authToggleLink');
-  const toggleText    = document.getElementById('authToggleText');
-  const formTitle     = document.getElementById('emailFormTitle');
-  const errorMsg      = document.getElementById('authError');
-
-  let isRegister = false;
-
-  function showError(msg) {
-    errorMsg.textContent = msg;
-    errorMsg.style.display = 'block';
-  }
-  function clearError() { errorMsg.style.display = 'none'; }
-
-  toggleLink.addEventListener('click', () => {
-    isRegister = !isRegister;
-    formTitle.textContent   = isRegister ? 'Konto erstellen' : 'Mit E-Mail anmelden';
-    submitBtn.textContent   = isRegister ? 'Registrieren' : 'Anmelden';
-    toggleText.textContent  = isRegister ? 'Bereits ein Konto?' : 'Noch kein Konto?';
-    toggleLink.textContent  = isRegister ? 'Anmelden' : 'Registrieren';
-    clearError();
-  });
-
-  const FIREBASE_ERRORS = {
-    'auth/invalid-email':          'Ungültige E-Mail-Adresse.',
-    'auth/user-not-found':         'Kein Konto mit dieser E-Mail.',
-    'auth/wrong-password':         'Falsches Passwort.',
-    'auth/email-already-in-use':   'E-Mail wird bereits verwendet.',
-    'auth/weak-password':          'Passwort muss mindestens 6 Zeichen haben.',
-    'auth/too-many-requests':      'Zu viele Versuche. Bitte kurz warten.',
-    'auth/invalid-credential':     'E-Mail oder Passwort falsch.',
-  };
-
-  submitBtn.addEventListener('click', async () => {
-    clearError();
-    const email    = emailInput.value.trim();
-    const password = passwordInput.value;
-    if (!email || !password) { showError('Bitte E-Mail und Passwort eingeben.'); return; }
-    submitBtn.disabled = true;
-    try {
-      if (isRegister) await createUserWithEmailAndPassword(auth, email, password);
-      else            await signInWithEmailAndPassword(auth, email, password);
-    } catch (err) {
-      showError(FIREBASE_ERRORS[err.code] || 'Fehler: ' + err.message);
-    } finally {
-      submitBtn.disabled = false;
-    }
-  });
-
-  [emailInput, passwordInput].forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') submitBtn.click(); }));
-})();
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  localStorage.removeItem(NAME_KEY);
+  showLogin();
+});
 
 /* ════════════════════════════════════
    SUCHE
@@ -682,36 +601,16 @@ overlay.addEventListener('click', () => { document.querySelectorAll('.modal.open
 document.getElementById('addBtn').addEventListener('click', () => openModal('addModal'));
 document.getElementById('modalClose').addEventListener('click', () => closeModal('addModal'));
 
-document.getElementById('addForm').addEventListener('submit', async function(e) {
+document.getElementById('addForm').addEventListener('submit', function(e) {
   e.preventDefault();
-  const errorEl  = document.getElementById('addFormError');
-  const submitEl = document.getElementById('addSubmitBtn');
-  errorEl.style.display = 'none';
-
-  if (!currentUserId) {
-    errorEl.textContent = 'Nicht eingeloggt. Bitte Seite neu laden.';
-    errorEl.style.display = 'block';
-    return;
-  }
-
   const name     = document.getElementById('inputName').value.trim();
   const url      = document.getElementById('inputUrl').value.trim();
   const sub      = document.getElementById('inputSub').value.trim();
   const category = document.getElementById('inputCategory').value.trim();
-  const newApp   = { name, url: url.startsWith('http') ? url : `https://${url}`, iconType: 'emoji', icon: selectedEmoji, sub: sub||'', category: category||'', clicks: 0 };
-
-  submitEl.disabled = true;
-  try {
-    const docRef = await addDoc(collection(db, "users", currentUserId, "apps"), newApp);
-    APPS.push({ ...newApp, docId: docRef.id });
-    buildGrid(); this.reset(); closeModal('addModal'); launchConfetti();
-  } catch (err) {
-    console.error("Speichern fehlgeschlagen:", err);
-    errorEl.textContent = 'Fehler: ' + (err.message || err.code || 'Unbekannt');
-    errorEl.style.display = 'block';
-  } finally {
-    submitEl.disabled = false;
-  }
+  const newApp   = { name, url: url.startsWith('http') ? url : `https://${url}`, iconType: 'emoji', icon: selectedEmoji, sub: sub||'', category: category||'', clicks: 0, docId: genId() };
+  APPS.push(newApp);
+  saveApps();
+  buildGrid(); this.reset(); closeModal('addModal'); launchConfetti();
 });
 
 /* ════════════════════════════════════
@@ -900,8 +799,6 @@ function initPomodoro() {
 /* ════════════════════════════════════
    TODO
 ════════════════════════════════════ */
-let TODOS = [];
-
 function renderTodos() {
   const list  = document.getElementById('todoList');
   const count = document.getElementById('todoCount');
@@ -935,41 +832,24 @@ function renderTodos() {
   });
 }
 
-async function loadTodos() {
-  if (!currentUserId) return;
-  TODOS = [];
-  try {
-    const snap = await getDocs(collection(db, 'users', currentUserId, 'todos'));
-    snap.forEach(d => TODOS.push({ id: d.id, ...d.data() }));
-    TODOS.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-  } catch (err) { console.error('Todos laden:', err); }
+function addTodo(text) {
+  if (!text.trim()) return;
+  const todo = { id: genId(), text: text.trim(), done: false, createdAt: Date.now() };
+  TODOS.push(todo);
+  saveTodos();
   renderTodos();
 }
 
-async function addTodo(text) {
-  if (!currentUserId || !text.trim()) return;
-  const data = { text: text.trim(), done: false, createdAt: Date.now() };
-  try {
-    const ref = await addDoc(collection(db, 'users', currentUserId, 'todos'), data);
-    TODOS.push({ id: ref.id, ...data });
-    renderTodos();
-  } catch (err) { console.error('Todo hinzufügen:', err); }
-}
-
-async function toggleTodo(todo) {
+function toggleTodo(todo) {
   todo.done = !todo.done;
+  saveTodos();
   renderTodos();
-  try {
-    await updateDoc(doc(db, 'users', currentUserId, 'todos', todo.id), { done: todo.done });
-  } catch { todo.done = !todo.done; renderTodos(); }
 }
 
-async function deleteTodo(id) {
+function deleteTodo(id) {
   TODOS = TODOS.filter(t => t.id !== id);
+  saveTodos();
   renderTodos();
-  try {
-    await deleteDoc(doc(db, 'users', currentUserId, 'todos', id));
-  } catch (err) { console.error('Todo löschen:', err); }
 }
 
 function initTodo() {

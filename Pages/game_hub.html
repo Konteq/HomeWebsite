@@ -178,7 +178,7 @@
   <script type="module">
     import { initializeApp }                                              from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getFirestore, collection, getDocs, query, orderBy, limit }  from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-    import { getAuth, signInAnonymously }                                from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signInAnonymously }           from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
     const app = initializeApp({
       apiKey:    "AIzaSyAVjuGZg8T8eMUHRVFS1K3Qk6cZXI2CSiM",
@@ -224,13 +224,28 @@
       } catch(e) { console.error('loadBest error', e); }
     }
 
-    // Sign in anonymously so Firestore rules (auth != null) pass, then load
-    signInAnonymously(getAuth(app)).catch(() => {}).finally(() => {
+    let loaded = false;
+    function loadAll() {
+      if (loaded) return;
+      loaded = true;
       loadBoard('jump',  'jumpBoard');
       loadBoard('drift', 'driftBoard');
       loadBest('jump',   'jumpBest');
       loadBest('drift',  'driftBest');
+    }
+
+    const auth = getAuth(app);
+    // onAuthStateChanged picks up the existing login session from index.html
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        loadAll();
+      } else {
+        // Not logged in – try anonymous auth as fallback
+        signInAnonymously(auth).catch(() => loadAll()); // anon auth fires onAuthStateChanged again on success
+      }
     });
+    // Safety fallback: load after 4s in case auth never fires
+    setTimeout(loadAll, 4000);
   </script>
 </body>
 </html>

@@ -282,9 +282,9 @@
 </div>
 
 <script type="module">
-import { initializeApp }                          from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged }            from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import { initializeApp }                    from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import { getAuth, signInAnonymously }       from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
 // ════════════════════════════════════════════
 // CANVAS SETUP
@@ -334,8 +334,7 @@ const fbConfig = {
 };
 const fbApp = initializeApp(fbConfig);
 const db    = getFirestore(fbApp);
-const auth  = getAuth(fbApp);
-let   currentUser = null;
+signInAnonymously(getAuth(fbApp)).catch(() => {});
 
 // ── Save data ─────────────────────────────────────────
 const SAVE_KEY = 'jumpgame_v2';
@@ -354,25 +353,7 @@ function loadLocal() {
   } catch(e) {}
 }
 loadLocal();
-// Show loaded data immediately on start screen (before auth fires)
 setTimeout(() => updateHUD(), 0);
-
-async function loadCloud(uid) {
-  try {
-    const snap = await getDoc(doc(db, 'users', uid, 'game', 'jump'));
-    if (snap.exists()) {
-      const d = snap.data();
-      // Smart merge: never reduce what's already in local storage
-      save.coins    = Math.max(save.coins, Number(d.coins) || 0);
-      save.best     = Math.max(save.best,  Number(d.best)  || 0);
-      save.skins    = [...new Set([...(save.skins || [0]), ...(Array.isArray(d.skins) ? d.skins : [])])];
-      if (d.skin != null) save.skin = d.skin;
-      save.powerups = { ...(d.powerups || {}), ...save.powerups };
-      localStorage.setItem(SAVE_KEY, JSON.stringify(save));
-      updateHUD();
-    }
-  } catch(e) { console.warn('Cloud load error:', e); }
-}
 
 let saveToast = null;
 function persist() {
@@ -381,14 +362,7 @@ function persist() {
     localStorage.setItem(SAVE_KEY, JSON.stringify(save));
   } catch(e) { console.error('localStorage error:', e); }
 
-  // Cloud save if logged in
-  if (currentUser) {
-    setDoc(doc(db, 'users', currentUser.uid, 'game', 'jump'), save)
-      .then(() => showSaveToast('☁️ Gespeichert'))
-      .catch(e => { console.warn('Firestore error:', e); showSaveToast('💾 Lokal gespeichert'); });
-  } else {
-    showSaveToast('💾 Lokal gespeichert');
-  }
+  showSaveToast('💾 Gespeichert');
 }
 
 function showSaveToast(msg) {
@@ -598,7 +572,7 @@ function update() {
 
 async function submitJumpScore(sc) {
   try {
-    const name = currentUser ? (currentUser.displayName || currentUser.email || 'Anonym') : 'Anonym';
+    const name = localStorage.getItem('hwUserName') || 'Anonym';
     await addDoc(collection(db, 'scores_jump'), { name, score: Math.floor(sc), ts: Date.now() });
   } catch(e) {}
 }
@@ -940,17 +914,6 @@ function renderShop() {
 // ════════════════════════════════════════════
 // Save on page close / refresh — critical fallback
 window.addEventListener('beforeunload', persist);
-
-onAuthStateChanged(auth, async user => {
-  currentUser = user;
-  const indicator = document.getElementById('cloudIndicator');
-  if (user) {
-    await loadCloud(user.uid);
-    if (indicator) { indicator.title = 'Cloud-Speicher aktiv (' + user.email + ')'; indicator.style.color = '#10b981'; }
-  } else {
-    if (indicator) { indicator.title = 'Nicht angemeldet — nur lokal gespeichert'; indicator.style.color = 'var(--text-label)'; }
-  }
-});
 
 // ════════════════════════════════════════════
 // GAME LOOP

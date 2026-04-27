@@ -358,9 +358,9 @@
   </div>
 
   <script type="module">
-    import { initializeApp }                from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { initializeApp }                    from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged }  from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getAuth, signInAnonymously }       from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
     const fbApp = initializeApp({
       apiKey:    "AIzaSyAVjuGZg8T8eMUHRVFS1K3Qk6cZXI2CSiM",
@@ -368,12 +368,11 @@
       projectId: "homewebsite-f5702"
     });
     const db = getFirestore(fbApp);
-    let currentUser = null;
-    onAuthStateChanged(getAuth(fbApp), u => { currentUser = u; });
+    signInAnonymously(getAuth(fbApp)).catch(() => {});
 
     async function submitDriftScore(sc) {
       try {
-        const name = currentUser ? (currentUser.displayName || currentUser.email || 'Anonym') : 'Anonym';
+        const name = localStorage.getItem('hwUserName') || 'Anonym';
         await addDoc(collection(db, 'scores_drift'), { name, score: Math.floor(sc), ts: Date.now() });
       } catch(e) {}
     }
@@ -1059,160 +1058,167 @@
       const layout = LEVEL_LAYOUTS[Math.min(levelIndex, LEVEL_LAYOUTS.length - 1)];
       trackGroup = new THREE.Group();
 
-      const roadMat   = new THREE.MeshStandardMaterial({ color: 0x252535, roughness: 0.88 });
-      const barrierR  = new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.4 });
-      const barrierW  = new THREE.MeshStandardMaterial({ color: 0xfafafa, metalness: 0.3 });
-      const centerMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xfbbf24, emissiveIntensity: 0.4 });
+      const roadMat    = new THREE.MeshStandardMaterial({ color: 0x22222e, roughness: 0.94 });
+      const grassMat   = new THREE.MeshStandardMaterial({ color: 0x2e7d32, roughness: 0.95 });
+      const darkGrass  = new THREE.MeshStandardMaterial({ color: 0x1b5e20, roughness: 0.95 });
+      const curbRedMat = new THREE.MeshStandardMaterial({ color: 0xdd1111, roughness: 0.5 });
+      const curbWhtMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.5 });
+      const wallMat    = new THREE.MeshStandardMaterial({ color: 0xd0d0d0, metalness: 0.2, roughness: 0.7 });
+      const wallRedMat = new THREE.MeshStandardMaterial({ color: 0xcc1122, roughness: 0.6 });
+      const centerMat  = new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xfbbf24, emissiveIntensity: 0.5 });
+      const lineMat    = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.3 });
 
-      // Convert layout to Vector3 for curve interpolation
+      // Smooth curve through waypoints
       const curve3Points = layout.map(p => new THREE.Vector3(p.x, 0, p.z));
       const curve = new THREE.CatmullRomCurve3(curve3Points, false, 'centripetal');
-      
-      // Sample VERY densely along the curve for ultra-smooth appearance
+      const samples = Math.max(400, layout.length * 100);
       const trackPoints = [];
-      const samples = Math.max(600, Math.ceil(layout.length * 150)); // 600+ samples for buttery smoothness
       for (let i = 0; i <= samples; i++) {
-        const t = i / samples;
-        const point = curve.getPoint(t);
-        trackPoints.push({ x: point.x, z: point.z });
+        const pt = curve.getPoint(i / samples);
+        trackPoints.push({ x: pt.x, z: pt.z });
       }
 
-      // Build road segments following smooth curve
+      // We build visual elements at a coarser stride to keep object count reasonable
+      const STRIDE = 4; // add grass/curbs every 4 points
+      const CURB_STEP = 16; // curb block length in points
+
       for (let i = 0; i < trackPoints.length - 1; i++) {
         const A = trackPoints[i], B = trackPoints[i + 1];
         const dx = B.x - A.x, dz = B.z - A.z;
         const len = Math.hypot(dx, dz);
+        if (len < 0.001) continue;
         const ang = Math.atan2(dx, dz);
         const mx = (A.x + B.x) / 2, mz = (A.z + B.z) / 2;
+        const perpX = Math.cos(ang), perpZ = -Math.sin(ang);
 
         roadSegments.push({ ax: A.x, az: A.z, bx: B.x, bz: B.z });
 
-        // Road surface – ultra-tiny segments follow smooth curve perfectly
-        const road = new THREE.Mesh(new THREE.BoxGeometry(ROAD_WIDTH, 0.2, len + 0.1), roadMat);
+        // Road surface
+        const road = new THREE.Mesh(new THREE.BoxGeometry(ROAD_WIDTH, 0.2, len + 0.12), roadMat);
         road.position.set(mx, 0.1, mz);
         road.rotation.y = ang;
         road.receiveShadow = true;
         trackGroup.add(road);
 
-        // Bold white edge stripes on both sides
-        const edgeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.3 });
-        const half = ROAD_WIDTH / 2;
-        [half - 0.15, -(half - 0.15)].forEach(offset => {
-          const edge = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.08, len + 0.1), edgeMat);
-          edge.position.set(mx + Math.cos(ang + Math.PI/2) * offset, 0.2, mz + Math.sin(ang + Math.PI/2) * offset);
-          edge.rotation.y = ang;
-          trackGroup.add(edge);
-        });
+        if (i % STRIDE === 0) {
+          const segLen = len * STRIDE + 0.2;
 
-        // Center dashes every 8 sampled points (more frequent on ultra-smooth curve)
-        if (i % 8 === 0) {
-          const dash = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.1, 3), centerMat);
-          dash.position.set(mx, 0.18, mz);
+          // ── Grass runoff (wide green belt outside barriers) ──────────────
+          const GRASS_W = ROAD_WIDTH + 32;
+          const grass = new THREE.Mesh(new THREE.BoxGeometry(GRASS_W, 0.06, segLen), grassMat);
+          grass.position.set(mx, -0.02, mz);
+          grass.rotation.y = ang;
+          trackGroup.add(grass);
+
+          // Darker outer grass band
+          const OUTER_W = GRASS_W + 40;
+          const outerGrass = new THREE.Mesh(new THREE.BoxGeometry(OUTER_W, 0.04, segLen), darkGrass);
+          outerGrass.position.set(mx, -0.04, mz);
+          outerGrass.rotation.y = ang;
+          trackGroup.add(outerGrass);
+
+          // ── White edge lines ─────────────────────────────────────────────
+          const EL = ROAD_WIDTH / 2 - 0.35;
+          [-EL, EL].forEach(off => {
+            const edge = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.06, segLen), lineMat);
+            edge.position.set(mx + perpX * off, 0.2, mz + perpZ * off);
+            edge.rotation.y = ang;
+            trackGroup.add(edge);
+          });
+
+          // ── Solid armco barrier walls ────────────────────────────────────
+          const WALL_OFF = ROAD_WIDTH / 2 + 1.6 + 1.4;
+          [1, -1].forEach(s => {
+            const isRed = s === 1;
+            const ox = perpX * s * WALL_OFF, oz = perpZ * s * WALL_OFF;
+            // Main concrete panel
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.9, segLen), wallMat);
+            wall.position.set(mx + ox, 0.45, mz + oz);
+            wall.rotation.y = ang;
+            wall.castShadow = true;
+            trackGroup.add(wall);
+            // Red accent stripe on top
+            const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.29, 0.18, segLen), wallRedMat);
+            stripe.position.set(mx + ox, 0.99, mz + oz);
+            stripe.rotation.y = ang;
+            trackGroup.add(stripe);
+            // White stripe at bottom
+            const bot = new THREE.Mesh(new THREE.BoxGeometry(0.29, 0.14, segLen), curbWhtMat);
+            bot.position.set(mx + ox, 0.07, mz + oz);
+            bot.rotation.y = ang;
+            trackGroup.add(bot);
+          });
+        }
+
+        // ── Alternating red/white curbs at road edge ─────────────────────
+        if (i % CURB_STEP === 0) {
+          const curbLen = len * CURB_STEP + 0.1;
+          const CURB_OFF = ROAD_WIDTH / 2 + 0.75;
+          const isRed = Math.floor(i / CURB_STEP) % 2 === 0;
+          [1, -1].forEach(s => {
+            const ox = perpX * s * CURB_OFF, oz = perpZ * s * CURB_OFF;
+            const curb = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.16, curbLen),
+              isRed ? curbRedMat : curbWhtMat);
+            curb.position.set(mx + ox, 0.08, mz + oz);
+            curb.rotation.y = ang;
+            curb.receiveShadow = true;
+            trackGroup.add(curb);
+          });
+        }
+
+        // ── Center line dashes ───────────────────────────────────────────
+        if (i % 10 === 0) {
+          const dash = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.06, 3.5), centerMat);
+          dash.position.set(mx, 0.19, mz);
           dash.rotation.y = ang;
           trackGroup.add(dash);
         }
-
-        // Side barriers follow smooth curve with high-segment cylinders
-        const half2 = ROAD_WIDTH / 2 + 2.8;
-        const perpX = Math.cos(ang), perpZ = -Math.sin(ang);
-        [[perpX * half2, perpZ * half2, barrierR],
-         [-perpX * half2, -perpZ * half2, barrierW]].forEach(([ox, oz, mat]) => {
-          // Thin rail running the segment
-          const rail = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.16, len + 0.1), mat);
-          rail.position.set(mx + ox, 0.95, mz + oz);
-          rail.rotation.y = ang;
-          rail.castShadow = true;
-          trackGroup.add(rail);
-          // Posts every 4 samples with ultra-smooth 32-segment cylinders
-          if (i % 4 === 0) {
-            const post = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 1.6, 32), mat);
-            post.position.set(A.x + ox, 0.8, A.z + oz);
-            post.castShadow = true;
-            trackGroup.add(post);
-          }
-        });
       }
 
-      // Checkpoint gates at each waypoint – much more visible!
+      // ── Checkpoint gates at each waypoint ────────────────────────────────
       layout.forEach((pt, i) => {
         const isStart  = i === 0;
         const isFinish = i === layout.length - 1;
-        let ang = 0;
-        if (i < layout.length - 1) {
-          ang = Math.atan2(layout[i + 1].x - pt.x, layout[i + 1].z - pt.z);
-        } else {
-          ang = Math.atan2(pt.x - layout[i - 1].x, pt.z - layout[i - 1].z);
-        }
+        let ang = i < layout.length - 1
+          ? Math.atan2(layout[i+1].x - pt.x, layout[i+1].z - pt.z)
+          : Math.atan2(pt.x - layout[i-1].x, pt.z - layout[i-1].z);
 
-        // Square patch fills the angular gap where two segments meet
-        const patch = new THREE.Mesh(new THREE.BoxGeometry(ROAD_WIDTH + 1, 0.2, ROAD_WIDTH + 1), roadMat);
-        patch.position.set(pt.x, 0.1, pt.z);
-        trackGroup.add(patch);
+        // Junction grass + road patch
+        const PATCH = ROAD_WIDTH + 2;
+        const gPatch = new THREE.Mesh(new THREE.BoxGeometry(PATCH + 32, 0.06, PATCH + 32), grassMat);
+        gPatch.position.set(pt.x, -0.02, pt.z);
+        trackGroup.add(gPatch);
+        const rPatch = new THREE.Mesh(new THREE.BoxGeometry(PATCH, 0.2, PATCH), roadMat);
+        rPatch.position.set(pt.x, 0.1, pt.z);
+        trackGroup.add(rPatch);
 
-        // Bright circle on ground showing checkpoint
-        const cpGround = new THREE.Mesh(
-          new THREE.CylinderGeometry(ROAD_WIDTH / 2 + 1.5, ROAD_WIDTH / 2 + 1.5, 0.05, 32),
-          new THREE.MeshBasicMaterial({ color: isStart ? 0x00ff66 : isFinish ? 0xff0000 : 0x00ccff, transparent: true, opacity: 0.4 })
-        );
-        cpGround.position.set(pt.x, 0.15, pt.z);
-        trackGroup.add(cpGround);
+        const cpColor = isStart ? 0x00ff44 : isFinish ? 0xff2222 : 0x00ccff;
+        const poleMat = new THREE.MeshStandardMaterial({ color: cpColor, emissive: cpColor, emissiveIntensity: 0.9 });
 
-        const cpColor = isStart ? 0x00ff66 : isFinish ? 0xff0000 : 0x00ccff;
-        const poleMat = new THREE.MeshStandardMaterial({ color: cpColor, emissive: cpColor, emissiveIntensity: 1.0 });
-
-        // Gate frame – tall and very visible
-        const gateHeight = 4.5;
-        const ph = ROAD_WIDTH / 2 + 0.3;
+        // Gate poles
+        const H = 4.8, ph = ROAD_WIDTH / 2 + 0.2;
         const cx = Math.cos(ang) * ph, cz = -Math.sin(ang) * ph;
-
-        // Top connecting bar
-        const topBar = new THREE.Mesh(
-          new THREE.BoxGeometry(ROAD_WIDTH + 2, 0.3, 0.3),
-          poleMat
-        );
-        topBar.position.set(pt.x, gateHeight - 0.5, pt.z);
-        topBar.rotation.y = ang;
-        topBar.castShadow = true;
-        trackGroup.add(topBar);
-
-        // Side poles – thick and bright
-        const poleGeometry = new THREE.CylinderGeometry(0.35, 0.35, gateHeight, 12);
-        [[cx, cz], [-cx, -cz]].forEach(([ox, oz], idx) => {
-          const pole = new THREE.Mesh(poleGeometry, poleMat);
-          pole.position.set(pt.x + ox, gateHeight / 2, pt.z + oz);
+        [[cx, cz], [-cx, -cz]].forEach(([ox, oz]) => {
+          const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.35, H, 12), poleMat);
+          pole.position.set(pt.x + ox, H / 2, pt.z + oz);
           pole.castShadow = true;
           trackGroup.add(pole);
-
-          // Sphere top marker
-          const top = new THREE.Mesh(new THREE.SphereGeometry(0.45, 16, 16), poleMat);
-          top.position.set(pt.x + ox, gateHeight - 0.2, pt.z + oz);
-          top.castShadow = true;
-          trackGroup.add(top);
-
-          // Text/marker ring halfway up pole
-          const ring = new THREE.Mesh(
-            new THREE.TorusGeometry(0.5, 0.15, 10, 32),
-            new THREE.MeshBasicMaterial({ color: cpColor, emissive: cpColor, emissiveIntensity: 0.8 })
-          );
-          ring.rotation.y = ang;
-          ring.position.set(pt.x + ox, gateHeight / 2, pt.z + oz);
-          trackGroup.add(ring);
+          const ball = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 12), poleMat);
+          ball.position.set(pt.x + ox, H, pt.z + oz);
+          trackGroup.add(ball);
         });
-
-        // Forward arrow on gate
-        const arrowPoints = [
-          new THREE.Vector3(-0.4, 0, 0),
-          new THREE.Vector3(0.4, 0, 0),
-          new THREE.Vector3(0, 0.6, 0)
-        ];
-        const arrowGeo = new THREE.BufferGeometry().setFromPoints(arrowPoints);
-        const arrowMesh = new THREE.Mesh(
-          arrowGeo,
-          new THREE.MeshBasicMaterial({ color: cpColor, emissive: cpColor, side: THREE.DoubleSide })
+        // Top bar
+        const top = new THREE.Mesh(new THREE.BoxGeometry(ROAD_WIDTH + 1.5, 0.28, 0.28), poleMat);
+        top.position.set(pt.x, H, pt.z);
+        top.rotation.y = ang;
+        trackGroup.add(top);
+        // Glowing ground disc
+        const disc = new THREE.Mesh(
+          new THREE.CylinderGeometry(ROAD_WIDTH/2 + 0.5, ROAD_WIDTH/2 + 0.5, 0.04, 32),
+          new THREE.MeshBasicMaterial({ color: cpColor, transparent: true, opacity: 0.35 })
         );
-        arrowMesh.position.set(pt.x, gateHeight / 2, pt.z);
-        arrowMesh.rotation.y = ang;
-        trackGroup.add(arrowMesh);
+        disc.position.set(pt.x, 0.16, pt.z);
+        trackGroup.add(disc);
 
         checkpoints.push({
           position: new THREE.Vector3(pt.x, 0.5, pt.z),
